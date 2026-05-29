@@ -1,0 +1,277 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ENGINEER
+  STAKEHOLDER
+  ADMIN
+}
+
+enum WorkspaceRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+enum DefinitionType {
+  METRIC
+  RULE
+  FILTER
+  FLAG
+}
+
+enum DefinitionStatus {
+  DRAFT
+  PUBLISHED
+  DEPRECATED
+  PENDING_REVIEW
+}
+
+enum AggFn {
+  SUM
+  COUNT
+  AVERAGE
+  DISTINCT_COUNT
+  MIN
+  MAX
+}
+
+enum GroupByPeriod {
+  CALENDAR_MONTH
+  FISCAL_MONTH
+  WEEK
+  DAY
+  QUARTER
+  YEAR
+}
+
+enum DedupeStrategy {
+  KEEP_FIRST
+  KEEP_LAST
+  KEEP_MAX
+}
+
+enum Connector {
+  IF
+  AND
+  OR
+}
+
+enum Operator {
+  EQUALS
+  NOT_EQUALS
+  IN
+  NOT_IN
+  GREATER_THAN
+  LESS_THAN
+  GREATER_EQUAL
+  LESS_EQUAL
+  IS_NULL
+  IS_NOT_NULL
+  CONTAINS
+  STARTS_WITH
+}
+
+enum ValueType {
+  STRING
+  NUMBER
+  BOOLEAN
+  ARRAY
+  NULL
+}
+
+enum ChangeRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  name           String
+  role           UserRole @default(STAKEHOLDER)
+  avatarInitials String   @default("")
+  avatarUrl      String?
+  title          String?
+  timezone       String?  @default("UTC")
+  about          String?
+  preferences    Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  workspaceMembers     WorkspaceMember[]
+  ownedDefinitions     Definition[]        @relation("DefinitionOwner")
+  approvedDefinitions  Definition[]        @relation("DefinitionApprover")
+  definitionOwners     DefinitionOwner[]
+  definitionVersions   DefinitionVersion[]
+  changeRequests       ChangeRequest[]     @relation("ChangeRequestRequester")
+  reviewedChangeRequests ChangeRequest[]   @relation("ChangeRequestReviewer")
+  comments             Comment[]
+}
+
+model Workspace {
+  id                String   @id @default(cuid())
+  name              String
+  slug              String   @unique
+  logoUrl           String?
+  workspaceSettings Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  members          WorkspaceMember[]
+  definitionGroups DefinitionGroup[]
+  definitions      Definition[]
+}
+
+model WorkspaceMember {
+  id          String        @id @default(cuid())
+  userId      String
+  workspaceId String
+  role        WorkspaceRole @default(VIEWER)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+}
+
+model DefinitionGroup {
+  id          String @id @default(cuid())
+  name        String
+  workspaceId String
+  color       String @default("#4ade80")
+
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  definitions Definition[]
+
+  @@index([workspaceId])
+}
+
+model Definition {
+  id               String           @id @default(cuid())
+  name             String
+  slug             String
+  description      String?
+  type             DefinitionType
+  status           DefinitionStatus @default(DRAFT)
+  workspaceId      String
+  groupId          String?
+  ownerId          String
+  approverId       String?
+  currentVersion   Int              @default(1)
+  sourceTable      String?
+  sourceValueField String?
+  sourceDateField  String?
+  currency         String?
+  aggregationFn    AggFn?
+  groupByPeriod    GroupByPeriod?
+  dedupeBy         String?
+  dedupeStrategy   DedupeStrategy?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  workspace      Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  group          DefinitionGroup?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  owner          User               @relation("DefinitionOwner", fields: [ownerId], references: [id])
+  approver       User?              @relation("DefinitionApprover", fields: [approverId], references: [id])
+  conditions     Condition[]
+  versions       DefinitionVersion[]
+  changeRequests ChangeRequest[]
+  comments       Comment[]
+  owners         DefinitionOwner[]
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId])
+  @@index([status])
+}
+
+model DefinitionOwner {
+  id           String  @id @default(cuid())
+  definitionId String
+  userId       String
+  isPrimary    Boolean @default(false)
+
+  definition Definition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([definitionId, userId])
+}
+
+model Condition {
+  id           String    @id @default(cuid())
+  definitionId String
+  order        Int
+  connector    Connector
+  field        String
+  operator     Operator
+  value        String?
+  valueType    ValueType @default(STRING)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  definition Definition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+
+  @@index([definitionId, order])
+}
+
+model DefinitionVersion {
+  id                String   @id @default(cuid())
+  definitionId      String
+  version           Int
+  snapshot          Json
+  changeDescription String
+  changedById       String
+  createdAt         DateTime @default(now())
+
+  definition Definition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  changedBy  User       @relation(fields: [changedById], references: [id])
+
+  @@unique([definitionId, version])
+  @@index([definitionId])
+}
+
+model ChangeRequest {
+  id                String              @id @default(cuid())
+  definitionId      String
+  requestedById     String
+  reviewedById      String?
+  status            ChangeRequestStatus @default(PENDING)
+  changeDescription String
+  proposedSnapshot  Json
+  reviewNote        String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  definition  Definition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  requestedBy User       @relation("ChangeRequestRequester", fields: [requestedById], references: [id])
+  reviewedBy  User?      @relation("ChangeRequestReviewer", fields: [reviewedById], references: [id])
+  comments    Comment[]
+
+  @@index([definitionId])
+  @@index([status])
+}
+
+model Comment {
+  id              String   @id @default(cuid())
+  definitionId    String
+  authorId        String
+  body            String
+  changeRequestId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  definition    Definition     @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  author        User           @relation(fields: [authorId], references: [id])
+  changeRequest ChangeRequest? @relation(fields: [changeRequestId], references: [id], onDelete: SetNull)
+
+  @@index([definitionId])
+}
