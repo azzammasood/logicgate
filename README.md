@@ -60,6 +60,10 @@ Built with **Next.js 16**, **Supabase Auth**, **PostgreSQL (Prisma)**, and **Rea
 
 ## System architecture
 
+![LogicGate system architecture](docs/images/architecture.png)
+
+*High-level view: browser client, Next.js server, and Supabase backend.*
+
 ```mermaid
 flowchart TB
     subgraph Client["Browser"]
