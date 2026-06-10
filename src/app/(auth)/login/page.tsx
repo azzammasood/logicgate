@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { AnimatedLogo } from "@/components/landing/AnimatedLogo";
 
 function LoginForm() {
   const router = useRouter();
@@ -68,6 +69,7 @@ function LoginForm() {
 
   return (
     <div className="w-full max-w-md rounded-lg border border-white/10 bg-[#161920] p-8">
+      <AnimatedLogo size={72} className="mb-6" />
       <h1 className="font-[family-name:var(--font-syne)] text-2xl font-bold text-[#4ade80]">
         LogicGate
       </h1>

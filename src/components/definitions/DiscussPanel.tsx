@@ -6,7 +6,8 @@ import { formatDistanceToNow } from "date-fns";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PageLoader } from "@/components/layout/PageLoader";
 import { actionOverlay } from "@/stores/actionOverlay";
 import { toast } from "sonner";
 
@@ -65,6 +66,7 @@ export function DiscussPanel({ definitionId, currentUserId }: DiscussPanelProps)
 
   return (
     <div className="flex h-full flex-col p-6">
+      <PageLoader active={isLoading} message="Loading discussion…" />
       <div className="flex-1 space-y-4 overflow-y-auto">
         {isLoading &&
           Array.from({ length: 3 }).map((_, i) => (
@@ -82,8 +84,10 @@ export function DiscussPanel({ definitionId, currentUserId }: DiscussPanelProps)
               key={c.id}
               className="flex gap-3 rounded-lg border border-[var(--border-color)] bg-[var(--surface,#161920)] p-3"
             >
-              <Avatar className="h-8 w-8 items-center justify-center bg-[var(--accent)]/15 text-xs font-medium text-[var(--accent)]">
-                {c.author?.avatarInitials}
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="flex items-center justify-center bg-[var(--accent)]/15 text-[10px] font-semibold leading-none text-[var(--accent)]">
+                  {c.author?.avatarInitials}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center justify-between">

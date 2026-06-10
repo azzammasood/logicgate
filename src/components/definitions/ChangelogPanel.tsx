@@ -13,7 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PageLoader } from "@/components/layout/PageLoader";
 import { VersionDiffDialog } from "@/components/definitions/VersionDiffDialog";
 import { actionOverlay } from "@/stores/actionOverlay";
 import { toast } from "sonner";
@@ -64,6 +65,7 @@ export function ChangelogPanel({ definitionId, onRestored }: ChangelogPanelProps
 
   return (
     <div className="space-y-3 p-6">
+      <PageLoader active={isLoading} message="Loading changelog…" />
       {isLoading &&
         Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="lg-skeleton h-[72px] rounded-lg" />
@@ -72,6 +74,7 @@ export function ChangelogPanel({ definitionId, onRestored }: ChangelogPanelProps
         (v: {
           version: number;
           changeDescription: string;
+          documentation?: string | null;
           createdAt: string;
           changedBy: { name: string; avatarInitials: string };
         }) => (
@@ -84,12 +87,19 @@ export function ChangelogPanel({ definitionId, onRestored }: ChangelogPanelProps
               onClick={() => setDiffVersion(v.version)}
               className="flex flex-1 gap-3 text-left transition-opacity hover:opacity-80"
             >
-              <Avatar className="h-8 w-8 items-center justify-center bg-[var(--accent)]/15 text-xs font-medium text-[var(--accent)]">
-                {v.changedBy?.avatarInitials ?? "?"}
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="flex items-center justify-center bg-[var(--accent)]/15 text-[10px] font-semibold leading-none text-[var(--accent)]">
+                  {v.changedBy?.avatarInitials ?? "?"}
+                </AvatarFallback>
               </Avatar>
               <div>
                 <p className="text-sm font-medium text-[var(--fg)]">v{v.version}</p>
                 <p className="text-sm text-[var(--fg)]/80">{v.changeDescription}</p>
+                {v.documentation?.trim() && (
+                  <p className="mt-2 whitespace-pre-wrap rounded-md border border-[var(--border-color)] bg-[var(--background,#0d0f14)]/60 px-2.5 py-2 text-xs leading-relaxed text-[var(--fg)]/75">
+                    {v.documentation}
+                  </p>
+                )}
                 <p className="mt-1 text-xs text-[var(--fg-muted)]">
                   {v.changedBy?.name} ·{" "}
                   {formatDistanceToNow(new Date(v.createdAt), { addSuffix: true })} · view changes

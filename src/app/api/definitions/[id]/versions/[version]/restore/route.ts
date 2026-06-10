@@ -42,6 +42,10 @@ export async function POST(_request: Request, { params }: Params) {
         data: {
           name: def.name,
           description: def.description,
+          documentation:
+            (def as { documentation?: string | null }).documentation ??
+            versionRecord.documentation ??
+            null,
           type: def.type,
           status: def.status,
           sourceTable: def.sourceTable,

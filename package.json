@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "prisma generate && next dev",
+    "restart": "node scripts/restart-dev.mjs",
+    "dev:stop": "node scripts/restart-dev.mjs --stop",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",

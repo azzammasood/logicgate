@@ -3,12 +3,18 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomOneDark } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import { formatDistanceToNow } from "date-fns";
-import { Copy, Check, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { useWorkspaceStore } from "@/stores/workspace";
-import { toast } from "sonner";
+import { PseudocodeBlock } from "@/components/definitions/PseudocodeBlock";
+import { cn } from "@/lib/utils";
+
+const FORMATS = [
+  { id: "generic", label: "Generic", lang: "sql" },
+  { id: "sql", label: "SQL", lang: "sql" },
+  { id: "python", label: "Python", lang: "python" },
+  { id: "dbt", label: "dbt", lang: "sql" },
+] as const;
 
 type Version = {
   version: number;
@@ -25,13 +31,6 @@ type ChangeRequest = {
   requestedBy?: { name: string } | null;
 };
 
-const FORMATS = [
-  { id: "generic", label: "Generic", lang: "javascript" },
-  { id: "sql", label: "SQL", lang: "sql" },
-  { id: "python", label: "Python", lang: "python" },
-  { id: "dbt", label: "dbt", lang: "sql" },
-] as const;
-
 function useDefinitionId() {
   const pathname = usePathname();
   return pathname.match(/\/app\/definitions\/([^/]+)/)?.[1] ?? null;
@@ -40,9 +39,8 @@ function useDefinitionId() {
 export function PseudocodeSidebar() {
   const definitionId = useDefinitionId();
   const workspaceId = useWorkspaceStore((s) => s.currentWorkspaceId);
-  const [copied, setCopied] = useState(false);
   const [format, setFormat] = useState<string>("generic");
-  const lang = FORMATS.find((f) => f.id === format)?.lang ?? "javascript";
+  const lang = FORMATS.find((f) => f.id === format)?.lang ?? "sql";
 
   const { data: pseudocode } = useQuery({
     queryKey: ["pseudocode", definitionId, format],
@@ -79,7 +77,7 @@ export function PseudocodeSidebar() {
 
   if (!definitionId) {
     return (
-      <aside className="hidden w-[320px] shrink-0 border-l border-[var(--border-color)] bg-[var(--surface,#161920)] xl:flex xl:flex-col">
+      <aside className="hidden w-[380px] shrink-0 border-l border-[var(--border-color)] bg-[var(--surface,#161920)] xl:flex xl:flex-col">
         <div className="flex flex-1 items-center justify-center p-6 text-center">
           <p className="text-xs text-[var(--fg-muted)]">
             Select a definition to view auto-compiled pseudocode.
@@ -89,16 +87,8 @@ export function PseudocodeSidebar() {
     );
   }
 
-  const copyCode = async () => {
-    if (!pseudocode?.code) return;
-    await navigator.clipboard.writeText(pseudocode.code);
-    setCopied(true);
-    toast.success("Copied to clipboard");
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
-    <aside className="hidden w-[320px] shrink-0 flex-col overflow-y-auto border-l border-[var(--border-color)] bg-[var(--surface,#161920)] xl:flex">
+    <aside className="hidden w-[380px] shrink-0 flex-col overflow-y-auto border-l border-[var(--border-color)] bg-[var(--surface,#161920)] xl:flex">
       <div className="border-b border-[var(--border-color)] px-4 py-3">
         <h3 className="text-sm font-medium text-[var(--fg)]">Auto-compiled Pseudocode</h3>
         <p className="text-[10px] text-[var(--fg-muted)]">Updates on every save</p>
@@ -119,54 +109,29 @@ export function PseudocodeSidebar() {
           </div>
         )}
 
-        <div className="overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--background,#0d0f14)]">
-          <div className="flex items-center justify-between gap-2 border-b border-white/5 px-2 py-1.5">
-            <div className="flex flex-wrap gap-1">
-              {FORMATS.map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => setFormat(f.id)}
-                  className={
-                    format === f.id
-                      ? "rounded px-1.5 py-0.5 text-[10px] font-medium bg-[var(--accent)]/15 text-[var(--accent)]"
-                      : "rounded px-1.5 py-0.5 text-[10px] font-medium text-[var(--fg-muted)] hover:bg-white/5"
-                  }
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
+        <div className="flex flex-wrap gap-1">
+          {FORMATS.map((f) => (
             <button
+              key={f.id}
               type="button"
-              onClick={copyCode}
-              disabled={!pseudocode?.code}
-              className="flex shrink-0 items-center gap-1 text-[11px] text-[var(--fg-muted)] transition-colors hover:text-[var(--fg)] disabled:opacity-40"
+              onClick={() => setFormat(f.id)}
+              className={cn(
+                "rounded px-2 py-1 text-[10px] font-medium transition-colors",
+                format === f.id
+                  ? "bg-[var(--accent)]/15 text-[var(--accent)]"
+                  : "text-[var(--fg-muted)] hover:bg-white/5"
+              )}
             >
-              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-              Copy
+              {f.label}
             </button>
-          </div>
-          {pseudocode?.code ? (
-            <div className="max-h-[55vh] overflow-auto">
-              <SyntaxHighlighter
-                language={lang}
-                style={atomOneDark}
-                customStyle={{
-                  margin: 0,
-                  padding: "0.85rem",
-                  background: "transparent",
-                  fontSize: "12.5px",
-                  lineHeight: 1.65,
-                }}
-              >
-                {pseudocode.code}
-              </SyntaxHighlighter>
-            </div>
-          ) : (
-            <p className="p-3 text-[12px] text-[var(--fg-muted)]">Compiling…</p>
-          )}
+          ))}
         </div>
+
+        {pseudocode?.code ? (
+          <PseudocodeBlock code={pseudocode.code} language={lang} />
+        ) : (
+          <p className="text-[12px] text-[var(--fg-muted)]">Compiling…</p>
+        )}
 
         <div>
           <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">

@@ -5,6 +5,7 @@ export function SectionCard({
   icon: Icon,
   iconClassName,
   title,
+  titleInfo,
   rightLabel,
   children,
   className,
@@ -12,6 +13,7 @@ export function SectionCard({
   icon: LucideIcon;
   iconClassName?: string;
   title: string;
+  titleInfo?: React.ReactNode;
   rightLabel?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
@@ -34,6 +36,7 @@ export function SectionCard({
             <Icon className="h-4 w-4" />
           </span>
           <h3 className="text-sm font-medium text-white/90">{title}</h3>
+          {titleInfo}
         </div>
         {rightLabel && (
           <span className="text-xs text-white/35">{rightLabel}</span>

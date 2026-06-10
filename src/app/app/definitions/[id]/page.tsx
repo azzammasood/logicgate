@@ -1,7 +1,9 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { PageLoader } from "@/components/layout/PageLoader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VisualBuilder } from "@/components/definitions/VisualBuilder";
 import { PseudocodePanel } from "@/components/definitions/PseudocodePanel";
@@ -22,10 +24,20 @@ const statusStyles: Record<string, string> = {
   DEPRECATED: "bg-red-500/15 text-red-400",
 };
 
+const VALID_TABS = ["builder", "pseudocode", "changelog", "discuss", "settings"] as const;
+
 export default function DefinitionDetailPage({ params }: PageProps) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
   const workspaceId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const [tab, setTab] = useState("builder");
+
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t && (VALID_TABS as readonly string[]).includes(t)) {
+      setTab(t);
+    }
+  }, [searchParams]);
 
   const { data: definition, isLoading, refetch } = useQuery({
     queryKey: ["definition", id],
@@ -73,7 +85,12 @@ export default function DefinitionDetailPage({ params }: PageProps) {
   const settings = (workspace?.workspaceSettings ?? {}) as WorkspaceSettings;
 
   if (isLoading) {
-    return <DefinitionSkeleton />;
+    return (
+      <>
+        <DefinitionSkeleton />
+        <PageLoader active message="Loading definition…" />
+      </>
+    );
   }
 
   if (!definition) {
@@ -115,6 +132,7 @@ export default function DefinitionDetailPage({ params }: PageProps) {
         <VisualBuilder
           definition={{
             id: definition.id,
+            documentation: definition.documentation,
             sourceTable: definition.sourceTable,
             sourceValueField: definition.sourceValueField,
             sourceDateField: definition.sourceDateField,

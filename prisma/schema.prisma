@@ -8,6 +8,8 @@ datasource db {
 
 enum UserRole {
   ENGINEER
+  ANALYST
+  ARCHITECT
   STAKEHOLDER
   ADMIN
 }
@@ -113,12 +115,15 @@ model User {
   changeRequests       ChangeRequest[]     @relation("ChangeRequestRequester")
   reviewedChangeRequests ChangeRequest[]   @relation("ChangeRequestReviewer")
   comments             Comment[]
+  notifications        Notification[]
+  feedback             Feedback[]
 }
 
 model Workspace {
   id                String   @id @default(cuid())
   name              String
   slug              String   @unique
+  description       String?
   logoUrl           String?
   workspaceSettings Json?
   createdAt         DateTime @default(now())
@@ -161,11 +166,12 @@ model Definition {
   name             String
   slug             String
   description      String?
+  documentation    String?          @db.Text
   type             DefinitionType
   status           DefinitionStatus @default(DRAFT)
   workspaceId      String
   groupId          String?
-  ownerId          String
+  ownerId          String?
   approverId       String?
   currentVersion   Int              @default(1)
   sourceTable      String?
@@ -181,7 +187,7 @@ model Definition {
 
   workspace      Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   group          DefinitionGroup?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
-  owner          User               @relation("DefinitionOwner", fields: [ownerId], references: [id])
+  owner          User?              @relation("DefinitionOwner", fields: [ownerId], references: [id])
   approver       User?              @relation("DefinitionApprover", fields: [approverId], references: [id])
   conditions     Condition[]
   versions       DefinitionVersion[]
@@ -229,6 +235,7 @@ model DefinitionVersion {
   version           Int
   snapshot          Json
   changeDescription String
+  documentation     String?  @db.Text
   changedById       String
   createdAt         DateTime @default(now())
 
@@ -274,4 +281,39 @@ model Comment {
   changeRequest ChangeRequest? @relation(fields: [changeRequestId], references: [id], onDelete: SetNull)
 
   @@index([definitionId])
+}
+
+enum NotificationType {
+  APPROVAL_REQUEST
+  APPROVER_ASSIGNED
+}
+
+model Notification {
+  id              String           @id @default(cuid())
+  userId          String
+  type            NotificationType
+  title           String
+  body            String
+  definitionId    String?
+  changeRequestId String?
+  readAt          DateTime?
+  createdAt       DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([createdAt])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String
+  topic     String
+  body      String
+  sentiment String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
 }

@@ -28,6 +28,7 @@ export async function createVersionSnapshot(
           version: nextVersion,
           snapshot: snapshot as object,
           changeDescription,
+          documentation: def.documentation ?? null,
           changedById,
         },
       }),

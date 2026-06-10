@@ -31,6 +31,7 @@ export async function GET(request: Request, { params }: Params) {
         id: true,
         version: true,
         changeDescription: true,
+        documentation: true,
         createdAt: true,
         changedBy: { select: { id: true, name: true, avatarInitials: true } },
       },

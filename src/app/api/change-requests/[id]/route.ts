@@ -1,11 +1,50 @@
 import { prisma } from "@/lib/prisma";
-import { apiResponse, requireSessionUser, getWorkspaceMember } from "@/lib/api";
+import { apiResponse, requireSessionUser, getWorkspaceMember, requireWorkspaceMember } from "@/lib/api";
 import { patchChangeRequestSchema } from "@/lib/validators";
 import { canApprove } from "@/lib/permissions";
 import { createVersionSnapshot } from "@/lib/versioning";
-import type { DefinitionSnapshot } from "@/lib/definitions";
+import { buildSnapshot, definitionInclude, type DefinitionSnapshot } from "@/lib/definitions";
 
 type Params = { params: Promise<{ id: string }> };
+
+export async function GET(_request: Request, { params }: Params) {
+  try {
+    const { id } = await params;
+    const userResult = await requireSessionUser();
+    if ("error" in userResult) return userResult.error;
+    const user = userResult;
+
+    const cr = await prisma.changeRequest.findUnique({
+      where: { id },
+      include: {
+        definition: { include: definitionInclude },
+        requestedBy: true,
+        reviewedBy: true,
+      },
+    });
+    if (!cr) {
+      return apiResponse(null, { error: "Not found", status: 404 });
+    }
+
+    const memberResult = await requireWorkspaceMember(user.id, cr.definition.workspaceId);
+    if ("error" in memberResult) return memberResult.error;
+
+    const currentSnapshot = buildSnapshot(
+      cr.definition,
+      cr.definition.conditions,
+      cr.definition.owners
+    );
+
+    return apiResponse({
+      ...cr,
+      currentSnapshot,
+      proposedSnapshot: cr.proposedSnapshot,
+    });
+  } catch (e) {
+    console.error(e);
+    return apiResponse(null, { error: "Server error", status: 500 });
+  }
+}
 
 export async function PATCH(request: Request, { params }: Params) {
   try {
@@ -49,6 +88,7 @@ export async function PATCH(request: Request, { params }: Params) {
           data: {
             name: def.name,
             description: def.description,
+            documentation: (def as { documentation?: string | null }).documentation ?? null,
             type: def.type,
             status: "PUBLISHED",
             sourceTable: def.sourceTable,

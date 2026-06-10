@@ -7,6 +7,7 @@ import { SourceSection, type SourceFields } from "@/components/definitions/secti
 import { ConditionsSection, type ConditionRow } from "@/components/definitions/sections/ConditionsSection";
 import { AggregationSection, type AggregationFields } from "@/components/definitions/sections/AggregationSection";
 import { OwnershipSection } from "@/components/definitions/sections/OwnershipSection";
+import { DocumentationSection } from "@/components/definitions/sections/DocumentationSection";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { toast } from "sonner";
 import type { WorkspaceSettings } from "@/types";
@@ -15,6 +16,7 @@ type OwnerRef = { userId: string; isPrimary?: boolean; user?: { id: string; name
 
 type DefinitionData = {
   id: string;
+  documentation?: string | null;
   sourceTable: string | null;
   sourceValueField: string | null;
   sourceDateField: string | null;
@@ -23,7 +25,7 @@ type DefinitionData = {
   groupByPeriod: string | null;
   dedupeBy: string | null;
   dedupeStrategy: string | null;
-  ownerId: string;
+  ownerId: string | null;
   approverId: string | null;
   owners?: OwnerRef[];
   conditions: ConditionRow[];
@@ -78,14 +80,23 @@ export function VisualBuilder({
     dedupeStrategy: definition.dedupeStrategy,
   });
   const [conditions, setConditions] = useState<ConditionRow[]>(definition.conditions);
+  const [documentation, setDocumentation] = useState(definition.documentation ?? "");
   const [saving, setSaving] = useState(false);
 
   // Baselines of what is already persisted. Saves only fire on real diffs.
   const savedFieldsRef = useRef<string>(stable({ ...source, ...aggregation }));
+  const savedDocumentationRef = useRef<string>(documentation.trim());
   const savedConditionsRef = useRef<string>(stableConditions(definition.conditions));
 
   const patchPayload = useDebouncedValue({ ...source, ...aggregation }, 1200);
+  const debouncedDocumentation = useDebouncedValue(documentation, 1200);
   const debouncedConditions = useDebouncedValue(conditions, 800);
+
+  useEffect(() => {
+    const doc = definition.documentation ?? "";
+    setDocumentation(doc);
+    savedDocumentationRef.current = doc.trim();
+  }, [definition.id, definition.documentation]);
 
   const patchMutation = useMutation({
     mutationFn: async (body: Record<string, unknown>) => {
@@ -190,6 +201,7 @@ export function VisualBuilder({
         members={members}
         onSaved={onSaved}
       />
+      <DocumentationSection value={documentation} onChange={setDocumentation} />
     </div>
   );
 }

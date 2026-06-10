@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SectionCard, FieldRow } from "@/components/definitions/sections/SectionShell";
+import { SectionInfoTip } from "@/components/definitions/sections/SectionInfoTip";
 
 export type SourceFields = {
   sourceTable: string | null;
@@ -37,6 +38,12 @@ export function SourceSection({ values, sourceTables = [], onChange }: SourceSec
       icon={Database}
       iconClassName="bg-blue-500/15 text-blue-400"
       title="Source Fields"
+      titleInfo={
+        <SectionInfoTip
+          description="Where the data lives: table, columns for values and dates, and currency if amounts need conversion."
+          example="Table transactions, value field amount_usd, date field transaction_date, currency USD."
+        />
+      }
       rightLabel={values.sourceTable ? `${values.sourceTable} table` : "no table"}
     >
       <div className="divide-y divide-white/5">

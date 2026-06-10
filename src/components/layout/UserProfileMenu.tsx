@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Settings, User, LogOut } from "lucide-react";
+import { Settings, User, LogOut, MessageSquare, BookOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AccountSettingsDialog } from "@/components/account/AccountSettingsDialog";
 import { PreferencesDialog } from "@/components/account/PreferencesDialog";
+import { FeedbackDialog } from "@/components/account/FeedbackDialog";
+import { DocsDialog } from "@/components/account/DocsDialog";
+import { NotificationsButton } from "@/components/account/NotificationsButton";
 import { cn } from "@/lib/utils";
 import { formatUserLocalTime } from "@/lib/timezones";
 
@@ -22,6 +25,8 @@ export function UserProfileMenu({ collapsed }: { collapsed?: boolean }) {
   const router = useRouter();
   const [accountOpen, setAccountOpen] = useState(false);
   const [prefsOpen, setPrefsOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [docsOpen, setDocsOpen] = useState(false);
   const [localTime, setLocalTime] = useState("");
 
   const { data } = useQuery({
@@ -62,81 +67,101 @@ export function UserProfileMenu({ collapsed }: { collapsed?: boolean }) {
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          className={cn(
-            "relative z-[60] flex items-center gap-2 rounded-md p-1.5 outline-none hover:bg-white/5",
-            collapsed ? "mx-auto" : "w-full"
-          )}
-          title={user?.name ?? "Account"}
-        >
-          <Avatar className="h-8 w-8 shrink-0 border border-white/10">
-            {user?.avatarUrl ? (
-              <AvatarImage src={user.avatarUrl} alt={user.name} />
-            ) : null}
-            <AvatarFallback className="bg-[var(--accent,#4ade80)]/20 text-xs text-[var(--accent,#4ade80)]">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          {!collapsed && (
-            <span className="flex min-w-0 flex-1 flex-col text-left leading-tight">
-              <span className="truncate text-sm font-medium text-white/90">
-                {shortName || "Account"}
-              </span>
-              {user?.title && (
-                <span className="truncate text-[11px] text-[var(--accent,#4ade80)]">
-                  {user.title}
+      <div className={cn("flex items-center gap-1", collapsed ? "flex-col" : "w-full")}>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className={cn(
+              "relative z-[60] flex min-w-0 flex-1 items-center gap-2 rounded-md p-1.5 outline-none hover:bg-white/5",
+              collapsed ? "mx-auto" : "w-full"
+            )}
+            title={user?.name ?? "Account"}
+          >
+            <Avatar className="h-8 w-8 shrink-0 border border-white/10">
+              {user?.avatarUrl ? (
+                <AvatarImage src={user.avatarUrl} alt={user.name} />
+              ) : null}
+              <AvatarFallback className="bg-[var(--accent,#4ade80)]/20 text-xs text-[var(--accent,#4ade80)]">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            {!collapsed && (
+              <span className="flex min-w-0 flex-1 flex-col text-left leading-tight">
+                <span className="truncate text-sm font-medium text-white/90">
+                  {shortName || "Account"}
                 </span>
-              )}
-            </span>
-          )}
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          side="top"
-          align={collapsed ? "center" : "start"}
-          className="z-[200] w-64 border-white/10 bg-[#161920] p-0"
-        >
-          {user && (
-            <div className="border-b border-white/10 px-3 py-3">
-              <p className="text-sm font-medium text-white">{user.name}</p>
-              <p className="text-xs text-white/50">{user.email}</p>
-              {user.title && (
-                <p className="mt-1 text-xs text-[var(--accent,#4ade80)]">{user.title}</p>
-              )}
-              {localTime && (
-                <p className="mt-1 text-[10px] text-white/35">{localTime}</p>
-              )}
+                {user?.title && (
+                  <span className="truncate text-[11px] text-[var(--accent,#4ade80)]">
+                    {user.title}
+                  </span>
+                )}
+              </span>
+            )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="top"
+            align={collapsed ? "center" : "start"}
+            className="z-[200] w-64 border-white/10 bg-[#161920] p-0"
+          >
+            {user && (
+              <div className="border-b border-white/10 px-3 py-3">
+                <p className="text-sm font-medium text-white">{user.name}</p>
+                <p className="text-xs text-white/50">{user.email}</p>
+                {user.title && (
+                  <p className="mt-1 text-xs text-[var(--accent,#4ade80)]">{user.title}</p>
+                )}
+                {localTime && (
+                  <p className="mt-1 text-[10px] text-white/35">{localTime}</p>
+                )}
+              </div>
+            )}
+            <div className="p-1">
+              <DropdownMenuItem
+                className="cursor-pointer gap-2 text-white/90 focus:bg-white/10 focus:text-white data-highlighted:bg-white/10 data-highlighted:text-white"
+                onClick={() => setAccountOpen(true)}
+              >
+                <User className="h-4 w-4" />
+                Account
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer gap-2 text-white/90 focus:bg-white/10 focus:text-white data-highlighted:bg-white/10 data-highlighted:text-white"
+                onClick={() => setPrefsOpen(true)}
+              >
+                <Settings className="h-4 w-4" />
+                Preferences
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer gap-2 text-white/90 focus:bg-white/10 focus:text-white data-highlighted:bg-white/10 data-highlighted:text-white"
+                onClick={() => setFeedbackOpen(true)}
+              >
+                <MessageSquare className="h-4 w-4" />
+                Feedback
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer gap-2 text-white/90 focus:bg-white/10 focus:text-white data-highlighted:bg-white/10 data-highlighted:text-white"
+                onClick={() => setDocsOpen(true)}
+              >
+                <BookOpen className="h-4 w-4" />
+                Docs
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem
+                className="cursor-pointer gap-2 text-red-400 focus:bg-red-500/15 focus:text-red-300 data-highlighted:bg-red-500/15 data-highlighted:text-red-300"
+                onClick={signOut}
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
             </div>
-          )}
-          <div className="p-1">
-            <DropdownMenuItem
-              className="cursor-pointer gap-2"
-              onClick={() => setAccountOpen(true)}
-            >
-              <User className="h-4 w-4" />
-              Account
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer gap-2"
-              onClick={() => setPrefsOpen(true)}
-            >
-              <Settings className="h-4 w-4" />
-              Preferences
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-white/10" />
-            <DropdownMenuItem
-              className="cursor-pointer gap-2 text-red-400 focus:text-red-400"
-              onClick={signOut}
-            >
-              <LogOut className="h-4 w-4" />
-              Sign out
-            </DropdownMenuItem>
-          </div>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <NotificationsButton collapsed={collapsed} />
+      </div>
 
       <AccountSettingsDialog open={accountOpen} onOpenChange={setAccountOpen} user={user} />
       <PreferencesDialog open={prefsOpen} onOpenChange={setPrefsOpen} />
+      <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+      <DocsDialog open={docsOpen} onOpenChange={setDocsOpen} />
     </>
   );
 }

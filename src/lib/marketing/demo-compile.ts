@@ -1,0 +1,110 @@
+import {
+  compile,
+  type CompileFormat,
+  type CompilerInput,
+} from "@/lib/compiler";
+
+export type DemoCondition = {
+  id: string;
+  connector: "IF" | "AND";
+  field: string;
+  operator: "EQUALS" | "NOT_IN" | "GREATER_THAN";
+  value: string;
+  valueType: "STRING" | "ARRAY" | "BOOLEAN" | "NUMBER";
+};
+
+export const DEFAULT_DEMO_CONDITIONS: DemoCondition[] = [
+  {
+    id: "status",
+    connector: "IF",
+    field: "status",
+    operator: "EQUALS",
+    value: "completed",
+    valueType: "STRING",
+  },
+  {
+    id: "type",
+    connector: "AND",
+    field: "type",
+    operator: "NOT_IN",
+    value: '["refund","chargeback"]',
+    valueType: "ARRAY",
+  },
+  {
+    id: "is_internal",
+    connector: "AND",
+    field: "is_internal",
+    operator: "EQUALS",
+    value: "false",
+    valueType: "BOOLEAN",
+  },
+  {
+    id: "amount",
+    connector: "AND",
+    field: "amount_usd",
+    operator: "GREATER_THAN",
+    value: "0",
+    valueType: "NUMBER",
+  },
+];
+
+const FORMAT_MAP: CompileFormat[] = ["generic", "sql", "python", "dbt"];
+
+export function demoFormatFromTabIndex(index: number): CompileFormat {
+  return FORMAT_MAP[index] ?? "generic";
+}
+
+export function buildDemoCompilerInput(
+  conditions: DemoCondition[]
+): CompilerInput {
+  return {
+    definition: {
+      name: "Monthly Active Revenue",
+      sourceTable: "transactions",
+      sourceValueField: "amount_usd",
+      sourceDateField: "transaction_date",
+      aggregationFn: "SUM",
+      groupByPeriod: "CALENDAR_MONTH",
+      dedupeBy: null,
+      dedupeStrategy: null,
+    },
+    conditions: conditions.map((c, order) => ({
+      connector: c.connector === "IF" ? "AND" : "AND",
+      field: c.field,
+      operator: c.operator,
+      value: c.value,
+      valueType: c.valueType,
+      order,
+    })),
+  };
+}
+
+export function compileDemo(
+  conditions: DemoCondition[],
+  tabIndex: number
+): string {
+  return compile(buildDemoCompilerInput(conditions), demoFormatFromTabIndex(tabIndex));
+}
+
+export function displayOperator(op: DemoCondition["operator"]): string {
+  if (op === "NOT_IN") return "NOT IN";
+  if (op === "GREATER_THAN") return ">";
+  return "=";
+}
+
+export function displayValue(c: DemoCondition): string {
+  if (c.valueType === "ARRAY") {
+    try {
+      const arr = JSON.parse(c.value) as string[];
+      return JSON.stringify(arr);
+    } catch {
+      return c.value;
+    }
+  }
+  if (c.valueType === "STRING") return `"${c.value}"`;
+  return c.value;
+}
+
+export function isNumericValue(c: DemoCondition): boolean {
+  return c.valueType === "NUMBER" || c.valueType === "BOOLEAN";
+}

@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/select";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { toast } from "sonner";
+import { USER_ROLES, formatUserRole } from "@/lib/roles";
+import { AnimatedLogo } from "@/components/landing/AnimatedLogo";
 
 const selectContentClass =
   "z-[200] border border-white/10 bg-[#161920] shadow-xl";
@@ -73,6 +75,7 @@ export default function SignupPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[var(--background,#0d0f14)] px-4">
       <div className="w-full max-w-md rounded-lg border border-white/10 bg-[var(--surface,#161920)] p-8">
+        <AnimatedLogo size={72} className="mb-6" />
         <h1 className="font-[family-name:var(--font-syne)] text-2xl font-bold text-[var(--accent,#4ade80)]">
           Create account
         </h1>
@@ -113,11 +116,14 @@ export default function SignupPage() {
           />
           <Select value={role} onValueChange={(v) => v && setRole(v)}>
             <SelectTrigger className={selectTriggerClass}>
-              <SelectValue placeholder="Role" />
+              <SelectValue placeholder="Role">{formatUserRole(role)}</SelectValue>
             </SelectTrigger>
             <SelectContent className={selectContentClass}>
-              <SelectItem value="STAKEHOLDER">Stakeholder</SelectItem>
-              <SelectItem value="ENGINEER">Engineer</SelectItem>
+              {USER_ROLES.map((r) => (
+                <SelectItem key={r} value={r}>
+                  {formatUserRole(r)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Button

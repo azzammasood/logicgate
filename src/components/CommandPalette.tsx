@@ -4,15 +4,16 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Command } from "cmdk";
-import { FileText, History, GitPullRequest, Settings } from "lucide-react";
+import { FileText, GitPullRequest, Code2, Settings } from "lucide-react";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { cn } from "@/lib/utils";
 
 const pages = [
   { href: "/app/definitions", label: "Definitions", icon: FileText },
-  { href: "/app/history", label: "Version History", icon: History },
-  { href: "/app/changes", label: "Change Requests", icon: GitPullRequest },
-  { href: "/app/settings", label: "Pipeline Config", icon: Settings },
+  { href: "/app/changes", label: "Reviews", icon: GitPullRequest },
+  { href: "/app/pseudocodes", label: "Pseudocodes", icon: Code2 },
+  { href: "/app/discussions", label: "Discussions", icon: FileText },
+  { href: "/app/settings", label: "Configuration", icon: Settings },
 ];
 
 export function CommandPalette() {

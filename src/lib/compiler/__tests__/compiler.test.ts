@@ -52,6 +52,30 @@ describe("compiler", () => {
     expect(out).toContain("no filters applied");
   });
 
+  it("compileGeneric without aggregation (list definition)", () => {
+    const out = compileGeneric({
+      ...baseInput,
+      definition: {
+        ...baseInput.definition,
+        aggregationFn: null,
+        groupByPeriod: null,
+        name: "Churned Users",
+      },
+    });
+    expect(out).toContain("RETURN ROWS");
+    expect(out).toContain("no aggregation");
+  });
+
+  it("compileSQL without aggregation", () => {
+    const out = compileSQL({
+      ...baseInput,
+      definition: { ...baseInput.definition, aggregationFn: null, groupByPeriod: null },
+    });
+    expect(out).toContain("SELECT");
+    expect(out).not.toContain("GROUP BY");
+    expect(out).not.toContain("SUM(");
+  });
+
   it("null source table", () => {
     const out = compileGeneric({
       ...baseInput,

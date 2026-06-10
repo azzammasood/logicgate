@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SectionCard, FieldRow } from "@/components/definitions/sections/SectionShell";
+import { SectionInfoTip } from "@/components/definitions/sections/SectionInfoTip";
 
 export type AggregationFields = {
   aggregationFn: string | null;
@@ -27,6 +28,8 @@ const AGG_FNS = ["SUM", "COUNT", "AVERAGE", "DISTINCT_COUNT", "MIN", "MAX"] as c
 const PERIODS = ["CALENDAR_MONTH", "FISCAL_MONTH", "WEEK", "DAY", "QUARTER", "YEAR"] as const;
 const DEDUPE = ["KEEP_FIRST", "KEEP_LAST", "KEEP_MAX"] as const;
 
+const NONE_AGG = "__none__";
+
 const triggerClass = "h-9 w-full bg-[var(--background,#0d0f14)]";
 const contentClass =
   "z-[200] max-h-60 w-[var(--anchor-width)] border border-white/10 bg-[#161920] text-white shadow-xl";
@@ -35,23 +38,41 @@ const titleCase = (s: string) =>
   s.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 export function AggregationSection({ values, onChange }: AggregationSectionProps) {
+  const hasAggregation = !!values.aggregationFn;
+
   return (
     <SectionCard
       icon={Sigma}
       iconClassName="bg-purple-500/15 text-purple-400"
       title="Aggregation"
-      rightLabel="How to compute"
+      titleInfo={
+        <SectionInfoTip
+          description="Optional. Leave function empty when the definition is a filtered list or row set (e.g. churned users) with no roll-up. Use SUM, COUNT, etc. when you need a metric over time."
+          example="Churned users: no aggregation. Monthly revenue: SUM on amount_usd, group by calendar month."
+        />
+      }
+      rightLabel={hasAggregation ? "Metric" : "List / filter only"}
     >
       <div className="divide-y divide-white/5">
-        <FieldRow label="Function">
+        <FieldRow label="Function (optional)">
           <Select
-            value={values.aggregationFn ?? ""}
-            onValueChange={(v) => onChange({ aggregationFn: v || null })}
+            value={values.aggregationFn ?? NONE_AGG}
+            onValueChange={(v) => {
+              if (v === NONE_AGG) {
+                onChange({
+                  aggregationFn: null,
+                  groupByPeriod: null,
+                });
+              } else {
+                onChange({ aggregationFn: v });
+              }
+            }}
           >
             <SelectTrigger className={triggerClass}>
-              <SelectValue placeholder="Select function" />
+              <SelectValue placeholder="None — list or filter only" />
             </SelectTrigger>
             <SelectContent className={contentClass}>
+              <SelectItem value={NONE_AGG}>None — list / filter only</SelectItem>
               {AGG_FNS.map((fn) => (
                 <SelectItem key={fn} value={fn}>
                   {fn}
@@ -61,13 +82,14 @@ export function AggregationSection({ values, onChange }: AggregationSectionProps
           </Select>
         </FieldRow>
 
-        <FieldRow label="Group by">
+        <FieldRow label="Group by (optional)">
           <Select
             value={values.groupByPeriod ?? ""}
             onValueChange={(v) => onChange({ groupByPeriod: v || null })}
+            disabled={!hasAggregation}
           >
             <SelectTrigger className={triggerClass}>
-              <SelectValue placeholder="Period">
+              <SelectValue placeholder={hasAggregation ? "Period" : "Requires aggregation"}>
                 {values.groupByPeriod ? titleCase(values.groupByPeriod) : "Period"}
               </SelectValue>
             </SelectTrigger>
@@ -81,7 +103,7 @@ export function AggregationSection({ values, onChange }: AggregationSectionProps
           </Select>
         </FieldRow>
 
-        <FieldRow label="Dedupe by">
+        <FieldRow label="Dedupe by (optional)">
           <div className="flex items-center gap-2">
             <Input
               placeholder="user_id"
@@ -92,10 +114,11 @@ export function AggregationSection({ values, onChange }: AggregationSectionProps
             <Select
               value={values.dedupeStrategy ?? ""}
               onValueChange={(v) => onChange({ dedupeStrategy: v || null })}
+              disabled={!values.dedupeBy}
             >
               <SelectTrigger className="h-9 flex-1 bg-[var(--background,#0d0f14)]">
-                <SelectValue placeholder="Select Strategy">
-                  {values.dedupeStrategy ? titleCase(values.dedupeStrategy) : "Select Strategy"}
+                <SelectValue placeholder="Strategy">
+                  {values.dedupeStrategy ? titleCase(values.dedupeStrategy) : "Strategy"}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent className={contentClass}>

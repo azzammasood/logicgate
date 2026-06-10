@@ -79,10 +79,6 @@ export async function POST(request: Request) {
         workspaceId: parsed.data.workspaceId,
         groupId: parsed.data.groupId ?? null,
         description: parsed.data.description ?? null,
-        ownerId: user.id,
-        owners: {
-          create: { userId: user.id, isPrimary: true },
-        },
       },
       include: definitionInclude,
     });

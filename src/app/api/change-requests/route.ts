@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { apiResponse, requireSessionUser, requireWorkspaceMember } from "@/lib/api";
 import { createChangeRequestSchema } from "@/lib/validators";
+import { notifyApprovalRequest } from "@/lib/notifications";
 
 export async function GET(request: Request) {
   try {
@@ -23,12 +24,12 @@ export async function GET(request: Request) {
 
     const requests = await prisma.changeRequest.findMany({
       where: {
-        definition: { workspaceId },
         ...(status ? { status: status as "PENDING" | "APPROVED" | "REJECTED" } : {}),
         ...(definitionId ? { definitionId } : {}),
-        ...(approverId
-          ? { definition: { approverId } }
-          : {}),
+        definition: {
+          workspaceId,
+          ...(approverId ? { approverId } : {}),
+        },
       },
       include: {
         definition: true,
@@ -82,6 +83,17 @@ export async function POST(request: Request) {
       where: { id: definition.id },
       data: { status: "PENDING_REVIEW" },
     });
+
+    if (definition.approverId) {
+      await notifyApprovalRequest(
+        definition.approverId,
+        definition.id,
+        definition.name,
+        user.name,
+        cr.id,
+        parsed.data.changeDescription
+      );
+    }
 
     return apiResponse(cr, { status: 201 });
   } catch (e) {

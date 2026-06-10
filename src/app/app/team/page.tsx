@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Topbar } from "@/components/layout/Topbar";
+import { PageLoader } from "@/components/layout/PageLoader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { toast } from "sonner";
@@ -55,6 +56,7 @@ export default function TeamPage() {
   return (
     <div className="flex h-full flex-col bg-[#0d0f14]">
       <Topbar title="Stakeholders" />
+      <PageLoader active={isLoading} message="Loading stakeholders…" />
       <div className="border-b border-white/10 p-6">
         <form
           className="flex flex-wrap gap-2"
@@ -87,7 +89,6 @@ export default function TeamPage() {
         </form>
       </div>
       <div className="flex-1 overflow-y-auto p-6">
-        {isLoading && <p className="text-sm text-white/40">Loading…</p>}
         <div className="space-y-2">
           {members.map(
             (m: {
@@ -105,7 +106,11 @@ export default function TeamPage() {
                 className="flex items-center justify-between rounded-lg border border-white/10 bg-[#161920] p-4"
               >
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">{m.user.avatarInitials}</Avatar>
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="flex items-center justify-center bg-[var(--accent)]/15 text-xs font-semibold leading-none text-[var(--accent)]">
+                      {m.user.avatarInitials}
+                    </AvatarFallback>
+                  </Avatar>
                   <div>
                     <p className="font-medium">{m.user.name}</p>
                     <p className="text-sm text-white/50">{m.user.email}</p>

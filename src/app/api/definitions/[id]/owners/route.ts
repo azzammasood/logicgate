@@ -6,6 +6,10 @@ import {
   getInitials,
 } from "@/lib/api";
 import { canEdit } from "@/lib/permissions";
+import {
+  notifyApproverAssigned,
+  notifyPendingApprovalRequests,
+} from "@/lib/notifications";
 import { z } from "zod";
 
 type Params = { params: Promise<{ id: string }> };
@@ -75,6 +79,7 @@ export async function PUT(request: Request, { params }: Params) {
     }
 
     const primary = ids[0];
+    const previousApproverId = definition.approverId;
 
     await prisma.$transaction([
       prisma.definitionOwner.deleteMany({ where: { definitionId: id } }),
@@ -89,6 +94,14 @@ export async function PUT(request: Request, { params }: Params) {
         },
       }),
     ]);
+
+    const newApproverId = parsed.data.approverId ?? null;
+    if (newApproverId && newApproverId !== previousApproverId) {
+      if (newApproverId !== user.id) {
+        await notifyApproverAssigned(newApproverId, id, definition.name, user.name);
+      }
+      await notifyPendingApprovalRequests(id, newApproverId, definition.name);
+    }
 
     const refreshed = await prisma.definition.findUnique({
       where: { id },

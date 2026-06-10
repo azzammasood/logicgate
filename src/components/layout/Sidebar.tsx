@@ -5,10 +5,8 @@ import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   FileText,
-  History,
   GitPullRequest,
-  Download,
-  CheckCircle,
+  Code2,
   MessageSquare,
   Users,
   SlidersHorizontal,
@@ -22,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { LogoBadge } from "@/components/landing/LogoMark";
 import { UserProfileMenu } from "@/components/layout/UserProfileMenu";
 
-type BadgeKey = "definitions" | "changes" | "approvals";
+type BadgeKey = "definitions" | "reviews";
 
 type NavItem = {
   href: string;
@@ -37,23 +35,21 @@ const navSections: { title: string; items: NavItem[] }[] = [
     title: "Workspace",
     items: [
       { href: "/app/definitions", label: "Definitions", icon: FileText, badgeKey: "definitions", badgeTone: "muted" },
-      { href: "/app/history", label: "Version History", icon: History },
-      { href: "/app/changes", label: "Change Requests", icon: GitPullRequest, badgeKey: "changes", badgeTone: "amber" },
-      { href: "/app/export", label: "Pseudocode Export", icon: Download },
+      { href: "/app/changes", label: "Reviews", icon: GitPullRequest, badgeKey: "reviews", badgeTone: "amber" },
+      { href: "/app/pseudocodes", label: "Pseudocodes", icon: Code2 },
     ],
   },
   {
-    title: "Review",
+    title: "Collaboration",
     items: [
-      { href: "/app/approvals", label: "Approvals", icon: CheckCircle, badgeKey: "approvals", badgeTone: "amber" },
       { href: "/app/discussions", label: "Discussions", icon: MessageSquare },
       { href: "/app/team", label: "Stakeholders", icon: Users },
     ],
   },
-    {
-    title: "Settings",
+  {
+    title: "Admin",
     items: [
-      { href: "/app/settings", label: "Pipeline Config", icon: SlidersHorizontal },
+      { href: "/app/settings", label: "Configuration", icon: SlidersHorizontal },
       { href: "/app/settings/integrations", label: "Integrations", icon: Plug },
     ],
   },
@@ -66,7 +62,6 @@ function isActivePath(pathname: string, itemPath: string) {
     (p) => pathname === p || pathname.startsWith(p + "/")
   );
   if (matches.length === 0) return false;
-  // Only the most specific (longest) matching path wins.
   const best = matches.reduce((a, b) => (b.length > a.length ? b : a));
   return best === itemPath;
 }
@@ -81,6 +76,15 @@ function NavContent({
   const pathname = usePathname();
   const workspaceId = useWorkspaceStore((s) => s.currentWorkspaceId);
 
+  const { data: currentUser } = useQuery({
+    queryKey: ["current-user"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/sync", { method: "POST" });
+      const json = await res.json();
+      return json.data as { id: string } | null;
+    },
+  });
+
   const { data: definitionsData } = useQuery({
     queryKey: ["definitions", workspaceId],
     queryFn: async () => {
@@ -92,30 +96,33 @@ function NavContent({
     enabled: !!workspaceId,
   });
 
-  const { data: changesData } = useQuery({
-    queryKey: ["change-requests", workspaceId, "PENDING"],
+  const { data: myPendingReviews } = useQuery({
+    queryKey: ["change-requests", workspaceId, "PENDING", "mine", currentUser?.id],
     queryFn: async () => {
-      if (!workspaceId) return [];
       const res = await fetch(
-        `/api/change-requests?workspaceId=${workspaceId}&status=PENDING`
+        `/api/change-requests?workspaceId=${workspaceId}&status=PENDING&approverId=${currentUser!.id}`
       );
       const json = await res.json();
       return json.data ?? [];
     },
-    enabled: !!workspaceId,
+    enabled: !!workspaceId && !!currentUser?.id,
     refetchInterval: 60_000,
   });
 
   const badges: Record<BadgeKey, number> = {
     definitions: definitionsData?.length ?? 0,
-    changes: changesData?.length ?? 0,
-    approvals: changesData?.length ?? 0,
+    reviews: myPendingReviews?.length ?? 0,
   };
 
   return (
-    <nav className="flex flex-1 flex-col gap-5 overflow-y-auto p-3">
-      <div className="flex items-center gap-2 px-1">
-        <LogoBadge />
+    <nav className="flex flex-1 flex-col gap-5 overflow-x-hidden overflow-y-auto p-3">
+      <div
+        className={cn(
+          "flex shrink-0 items-center gap-2",
+          collapsed ? "flex-col justify-center px-0" : "px-1"
+        )}
+      >
+        <LogoBadge animateOnHover href="/app/definitions" />
         {!collapsed && (
           <div className="min-w-0 flex-1">
             <p className="truncate font-[family-name:var(--font-syne)] text-sm font-bold leading-tight text-white">
@@ -153,14 +160,15 @@ function NavContent({
                 href={item.href}
                 title={collapsed ? item.label : undefined}
                 className={cn(
-                  "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                  "relative flex items-center gap-3 rounded-md py-2 text-sm transition-colors",
                   active
                     ? "bg-[var(--accent,#4ade80)]/10 text-[var(--accent,#4ade80)]"
                     : "text-white/60 hover:bg-white/5 hover:text-white",
-                  collapsed && "justify-center"
+                  collapsed ? "justify-center px-2" : "px-3",
+                  active && !collapsed && "pl-3"
                 )}
               >
-                {active && (
+                {active && !collapsed && (
                   <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r bg-[var(--accent,#4ade80)]" />
                 )}
                 <Icon className="h-4 w-4 shrink-0" />
@@ -193,7 +201,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "hidden h-screen shrink-0 flex-col border-r border-white/10 bg-[var(--surface,#161920)] md:flex",
+        "hidden h-screen shrink-0 flex-col overflow-x-hidden border-r border-white/10 bg-[var(--surface,#161920)] md:flex",
         sidebarOpen ? "w-60" : "w-[4.5rem]"
       )}
     >

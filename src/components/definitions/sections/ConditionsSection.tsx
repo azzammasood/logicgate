@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SectionCard } from "@/components/definitions/sections/SectionShell";
+import { SectionInfoTip } from "@/components/definitions/sections/SectionInfoTip";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { cn } from "@/lib/utils";
 
@@ -239,6 +240,12 @@ export function ConditionsSection({ conditions, onChange, debounceMs = 800 }: Co
       icon={Filter}
       iconClassName="bg-amber-500/15 text-amber-400"
       title="Filter Logic"
+      titleInfo={
+        <SectionInfoTip
+          description="Rules that narrow rows before aggregation or output. Combine conditions with AND / OR."
+          example="status is completed AND type not in refund, chargeback."
+        />
+      }
       rightLabel={`${local.length} condition${local.length === 1 ? "" : "s"}`}
     >
       <div className="space-y-2">

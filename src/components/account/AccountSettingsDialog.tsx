@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { COMMON_TIMEZONES, TIMEZONE_LABELS } from "@/lib/timezones";
+import { USER_ROLES, formatUserRole } from "@/lib/roles";
 
 const selectContentClass =
   "z-[200] border border-white/10 bg-[#161920] shadow-xl";
@@ -174,11 +175,14 @@ export function AccountSettingsDialog({
             <label className="text-xs text-white/50">Role</label>
             <Select value={role} onValueChange={(v) => v && setRole(v)}>
               <SelectTrigger className="w-full bg-[#0d0f14]">
-                <SelectValue />
+                <SelectValue placeholder="Role">{formatUserRole(role)}</SelectValue>
               </SelectTrigger>
               <SelectContent className={selectContentClass}>
-                <SelectItem value="STAKEHOLDER">Stakeholder</SelectItem>
-                <SelectItem value="ENGINEER">Engineer</SelectItem>
+                {USER_ROLES.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {formatUserRole(r)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

@@ -3,6 +3,19 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { apiResponse, getInitials } from "@/lib/api";
 import { UserRole } from "@prisma/client";
+import type { AppUserRole } from "@/lib/roles";
+
+function mapSignupRole(role?: string): UserRole {
+  const allowed: Record<AppUserRole, UserRole> = {
+    ENGINEER: UserRole.ENGINEER,
+    ANALYST: UserRole.ANALYST,
+    ARCHITECT: UserRole.ARCHITECT,
+    STAKEHOLDER: UserRole.STAKEHOLDER,
+  };
+  if (role && role in allowed) return allowed[role as AppUserRole];
+  if (role === "ADMIN") return UserRole.ADMIN;
+  return UserRole.STAKEHOLDER;
+}
 
 export async function POST() {
   try {
@@ -15,12 +28,7 @@ export async function POST() {
     }
     const meta = user.user_metadata as { name?: string; role?: string };
     const name = meta.name ?? user.email.split("@")[0];
-    const role =
-      meta.role === "ENGINEER"
-        ? UserRole.ENGINEER
-        : meta.role === "ADMIN"
-          ? UserRole.ADMIN
-          : UserRole.STAKEHOLDER;
+    const role = mapSignupRole(meta.role);
 
     const dbUser = await prisma.user.upsert({
       where: { id: user.id },

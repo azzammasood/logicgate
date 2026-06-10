@@ -11,6 +11,7 @@ export const createDefinitionSchema = z.object({
 export const updateDefinitionSchema = z.object({
   name: z.string().min(2).optional(),
   description: z.string().optional().nullable(),
+  documentation: z.string().max(20000).optional().nullable(),
   type: z.enum(["METRIC", "RULE", "FILTER", "FLAG"]).optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "DEPRECATED", "PENDING_REVIEW"]).optional(),
   groupId: z.string().optional().nullable(),
@@ -72,7 +73,7 @@ export const patchChangeRequestSchema = z.object({
 
 export const patchUserSchema = z.object({
   name: z.string().min(2).optional(),
-  role: z.enum(["ENGINEER", "STAKEHOLDER"]).optional(),
+  role: z.enum(["ENGINEER", "ANALYST", "ARCHITECT", "STAKEHOLDER"]).optional(),
   title: z.string().max(120).optional().nullable(),
   timezone: z.string().max(64).optional(),
   about: z.string().max(2000).optional().nullable(),
@@ -110,6 +111,8 @@ export const createCommentSchema = z.object({
 export const updateWorkspaceSchema = z.object({
   name: z.string().min(2).optional(),
   slug: z.string().min(2).optional(),
+  description: z.string().max(500).nullable().optional(),
+  logoUrl: z.union([z.string().url(), z.literal("")]).nullable().optional(),
   workspaceSettings: z.record(z.string(), z.unknown()).optional(),
 });
 

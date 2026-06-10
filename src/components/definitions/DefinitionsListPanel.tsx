@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow, subHours, isAfter } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { CreateDefinitionDialog } from "@/components/definitions/CreateDefinitionDialog";
+import { PageLoader } from "@/components/layout/PageLoader";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { cn } from "@/lib/utils";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -81,7 +82,8 @@ export function DefinitionsListPanel() {
   }, [filtered]);
 
   return (
-    <aside className="flex w-[280px] shrink-0 flex-col border-r border-white/10 bg-[var(--surface,#161920)]">
+    <aside className="relative flex w-[280px] shrink-0 flex-col border-r border-white/10 bg-[var(--surface,#161920)]">
+      <PageLoader active={isLoading} message="Loading definitions…" />
       <div className="border-b border-white/10 p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-sm font-medium text-white/70">All Definitions</h2>

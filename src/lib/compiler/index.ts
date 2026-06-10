@@ -184,11 +184,15 @@ export function compileGeneric(input: CompilerInput): string {
         lines.push(formatConditionGeneric(c, prefix));
       });
   }
-  const ret = d.aggregationFn
-    ? `${d.aggregationFn}(${d.sourceValueField ?? "*"})`
-    : (d.sourceValueField ?? "-- raw field");
-  lines.push(`  RETURN ${ret}`);
-  if (d.groupByPeriod) lines.push(`  GROUP BY ${d.groupByPeriod.toLowerCase()}`);
+  if (!d.aggregationFn) {
+    const cols = d.sourceValueField ?? "*";
+    lines.push(`  RETURN ROWS (${cols})`);
+    lines.push("  -- no aggregation — filtered list / record set");
+  } else {
+    const ret = `${d.aggregationFn}(${d.sourceValueField ?? "*"})`;
+    lines.push(`  RETURN ${ret}`);
+    if (d.groupByPeriod) lines.push(`  GROUP BY ${d.groupByPeriod.toLowerCase()}`);
+  }
   if (d.dedupeBy) {
     lines.push(`  DEDUP BY ${d.dedupeBy} ${d.dedupeStrategy ?? "KEEP_FIRST"}`);
   }
@@ -198,10 +202,8 @@ export function compileGeneric(input: CompilerInput): string {
 export function compileSQL(input: CompilerInput): string {
   const { definition: d, conditions } = input;
   if (!d.sourceTable) return "-- source table not set";
-  const valueField = d.sourceValueField ?? "value";
+  const valueField = d.sourceValueField ?? "*";
   const dateField = d.sourceDateField ?? "created_at";
-  const period = periodSQL(d.groupByPeriod, dateField);
-  const agg = aggSQL(d.aggregationFn, valueField);
   const where =
     conditions.length === 0
       ? "  -- no filters applied"
@@ -212,13 +214,24 @@ export function compileSQL(input: CompilerInput): string {
             return prefix + formatConditionSQL(c);
           })
           .join("\n");
+
+  if (!d.aggregationFn) {
+    return `SELECT
+  ${valueField}
+FROM ${d.sourceTable}
+WHERE
+${where}`;
+  }
+
+  const period = periodSQL(d.groupByPeriod, dateField);
+  const agg = aggSQL(d.aggregationFn, valueField);
+  const groupClause = d.groupByPeriod ? `\nGROUP BY ${period}` : "";
   return `SELECT
   ${period} AS period,
   ${agg} AS ${slug(d.name)}
 FROM ${d.sourceTable}
 WHERE
-${where}
-GROUP BY ${period}`;
+${where}${groupClause}`;
 }
 
 export function compilePython(input: CompilerInput): string {
@@ -260,12 +273,18 @@ export function compilePython(input: CompilerInput): string {
   lines.push("    ]");
   const dateField = d.sourceDateField ?? "transaction_date";
   const valueField = d.sourceValueField ?? "amount";
+
+  if (!d.aggregationFn) {
+    lines.push(`    return result  # filtered rows (no aggregation)`);
+    return lines.join("\n");
+  }
+
   if (d.groupByPeriod) {
     lines.push(
       `    result = result.groupby(pd.Grouper(key='${dateField}', freq='MS'))`
     );
   }
-  const agg = d.aggregationFn?.toLowerCase() ?? "sum";
+  const agg = d.aggregationFn.toLowerCase();
   lines.push(`    return result['${valueField}'].${agg}()`);
   return lines.join("\n");
 }

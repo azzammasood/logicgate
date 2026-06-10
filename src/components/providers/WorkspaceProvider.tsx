@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { AnimatedLogo } from "@/components/landing/AnimatedLogo";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { CreateWorkspaceDialog } from "@/components/onboarding/CreateWorkspaceDialog";
 
@@ -40,8 +41,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--background,#0d0f14)] text-white/50">
-        Loading workspace…
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[var(--background,#0d0f14)]">
+        <AnimatedLogo size={72} />
+        <p className="text-sm text-white/50">Loading workspace…</p>
       </div>
     );
   }
