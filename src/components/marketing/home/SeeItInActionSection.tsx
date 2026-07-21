@@ -253,22 +253,6 @@ export function SeeItInActionSection() {
             >
               <span
                 style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: 6,
-                  background: "rgba(96,165,250,0.12)",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 12,
-                  color: "#60a5fa",
-                }}
-                aria-hidden
-              >
-                ◈
-              </span>
-              <span
-                style={{
                   fontFamily: 'var(--font-inter), "Inter", sans-serif',
                   fontSize: "12.5px",
                   fontWeight: 500,
@@ -337,22 +321,6 @@ export function SeeItInActionSection() {
             >
               <span
                 style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: 6,
-                  background: "var(--accent3)",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 12,
-                  color: "var(--accent)",
-                }}
-                aria-hidden
-              >
-                ⌘
-              </span>
-              <span
-                style={{
                   fontFamily: 'var(--font-inter), "Inter", sans-serif',
                   fontSize: "12.5px",
                   fontWeight: 500,
@@ -397,19 +365,6 @@ export function SeeItInActionSection() {
                   }}
                 >
                   AUTO-GENERATED
-                </span>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-inter), "Inter", sans-serif',
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: "var(--accent)",
-                    background: "var(--accent3)",
-                    borderRadius: 4,
-                    padding: "3px 8px",
-                  }}
-                >
-                  ↓ copy
                 </span>
               </div>
               <div
@@ -466,7 +421,7 @@ export function SeeItInActionSection() {
                 className="format-tab-name"
                 style={{
                   display: "block",
-                  fontFamily: "Satoshi, sans-serif",
+                  fontFamily: 'var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace',
                   fontWeight: 700,
                   fontSize: 14,
                   color: "var(--text)",

@@ -32,7 +32,7 @@ export async function GET(request: Request) {
         },
       },
       include: {
-        definition: true,
+        definition: { include: { conditions: { orderBy: { order: "asc" } } } },
         requestedBy: true,
         reviewedBy: true,
       },

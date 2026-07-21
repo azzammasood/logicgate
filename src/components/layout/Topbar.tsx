@@ -27,7 +27,9 @@ export function Topbar({ title, breadcrumbs = [], children }: TopbarProps) {
             ))}
           </nav>
         )}
-        <h1 className="font-[family-name:var(--font-syne)] text-lg font-semibold">{title}</h1>
+        <h1 className="font-[family-name:var(--app-font)] text-lg font-semibold text-[var(--fg)]">
+          {title}
+        </h1>
       </div>
       {children && <div className="flex items-center gap-2">{children}</div>}
     </header>

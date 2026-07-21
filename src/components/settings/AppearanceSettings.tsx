@@ -10,6 +10,7 @@ import {
   FONTS,
   LANGUAGES,
   applyAppearanceToDocument,
+  flashThemeTransition,
 } from "@/stores/appearance";
 
 export function ThemeSettings() {
@@ -19,6 +20,7 @@ export function ThemeSettings() {
   const setThemePreset = useAppearanceStore((s) => s.setThemePreset);
 
   function pick(preset: ThemePreset) {
+    flashThemeTransition();
     setThemePreset(preset);
     applyAppearanceToDocument(preset, font, language);
   }
@@ -64,6 +66,7 @@ export function FontSettings() {
   const setFont = useAppearanceStore((s) => s.setFont);
 
   function pick(f: FontId) {
+    flashThemeTransition();
     setFont(f);
     applyAppearanceToDocument(themePreset, f, language);
   }

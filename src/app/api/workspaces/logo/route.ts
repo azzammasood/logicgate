@@ -1,5 +1,5 @@
 import { apiResponse, requireSessionUser } from "@/lib/api";
-import { createClient } from "@/lib/supabase/server";
+import { uploadPublicImage } from "@/lib/supabase/storage";
 
 const MAX_BYTES = 2 * 1024 * 1024;
 const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -25,22 +25,12 @@ export async function POST(request: Request) {
     const path = `workspace-logos/${crypto.randomUUID()}.${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    const supabase = await createClient();
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(path, buffer, { contentType: file.type, upsert: true });
-
-    if (uploadError) {
-      console.error(uploadError);
-      return apiResponse(null, {
-        error:
-          "Logo upload failed. Create a public “avatars” bucket in Supabase Storage, or try again.",
-        status: 500,
-      });
+    const { url, error } = await uploadPublicImage(path, buffer, file.type);
+    if (error || !url) {
+      return apiResponse(null, { error: error ?? "Upload failed", status: 500 });
     }
 
-    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
-    return apiResponse({ logoUrl: urlData.publicUrl });
+    return apiResponse({ logoUrl: url });
   } catch (e) {
     console.error(e);
     return apiResponse(null, { error: "Server error", status: 500 });

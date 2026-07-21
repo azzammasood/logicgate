@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { LogoGlyph } from "@/components/landing/LogoMark";
 
 const variants = {
   "no-definitions": {
@@ -33,17 +34,14 @@ export function EmptyState({
 }) {
   const v = variants[variant];
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <svg width="80" height="80" viewBox="0 0 80 80" className="mb-4 text-[#4ade80]/40">
-        <rect x="10" y="30" width="20" height="20" fill="currentColor" opacity="0.6" />
-        <rect x="50" y="30" width="20" height="20" fill="currentColor" opacity="0.6" />
-        <path d="M30 40 L50 40" stroke="currentColor" strokeWidth="2" />
-        <circle cx="40" cy="20" r="6" fill="currentColor" />
-      </svg>
-      <h3 className="font-[family-name:var(--font-syne)] text-lg font-semibold">{v.title}</h3>
+    <div className="lg-fade-up flex flex-col items-center justify-center py-16 text-center">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--accent)]/15 bg-[var(--accent)]/5">
+        <LogoGlyph color="#4ade80" className="h-8 w-8 opacity-60" />
+      </div>
+      <h3 className="font-[family-name:var(--app-font)] text-lg font-semibold">{v.title}</h3>
       <p className="mt-2 max-w-sm text-sm text-white/50">{v.subtitle}</p>
       {"cta" in v && onCta && (
-        <Button className="mt-6 bg-[#4ade80] text-black" onClick={onCta}>
+        <Button className="hover-glow mt-6 bg-[var(--accent)] text-black hover:opacity-90" onClick={onCta}>
           {v.cta}
         </Button>
       )}

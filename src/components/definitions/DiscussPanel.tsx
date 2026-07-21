@@ -7,7 +7,6 @@ import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PageLoader } from "@/components/layout/PageLoader";
 import { actionOverlay } from "@/stores/actionOverlay";
 import { toast } from "sonner";
 
@@ -66,7 +65,6 @@ export function DiscussPanel({ definitionId, currentUserId }: DiscussPanelProps)
 
   return (
     <div className="flex h-full flex-col p-6">
-      <PageLoader active={isLoading} message="Loading discussion…" />
       <div className="flex-1 space-y-4 overflow-y-auto">
         {isLoading &&
           Array.from({ length: 3 }).map((_, i) => (
@@ -80,34 +78,35 @@ export function DiscussPanel({ definitionId, currentUserId }: DiscussPanelProps)
             authorId: string;
             author: { name: string; avatarInitials: string };
           }) => (
-            <div
-              key={c.id}
-              className="flex gap-3 rounded-lg border border-[var(--border-color)] bg-[var(--surface,#161920)] p-3"
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="flex items-center justify-center bg-[var(--accent)]/15 text-[10px] font-semibold leading-none text-[var(--accent)]">
+            <div key={c.id} className="flex items-start gap-3">
+              <Avatar className="h-9 w-9 shrink-0">
+                <AvatarFallback className="flex items-center justify-center bg-[var(--accent)]/15 text-xs font-semibold leading-none text-[var(--accent)]">
                   {c.author?.avatarInitials}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <div className="mb-1 flex items-center gap-2">
                   <p className="text-sm font-medium text-[var(--fg)]">{c.author?.name}</p>
                   <span className="text-[10px] text-[var(--fg-muted)]">
                     {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })}
                   </span>
+                  {currentUserId === c.authorId && (
+                    <button
+                      type="button"
+                      onClick={() => deleteMutation.mutate(c.id)}
+                      aria-label="Delete comment"
+                      className="ml-auto rounded p-1 text-[var(--fg-muted)] transition-colors hover:bg-red-500/10 hover:text-red-400"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
-                <p className="mt-1 whitespace-pre-wrap text-sm text-[var(--fg)]/80">{c.body}</p>
+                <div className="w-fit max-w-full rounded-2xl rounded-tl-md border border-[var(--border-color)] bg-[var(--surface,#161920)] px-3.5 py-2">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--fg)]/90">
+                    {c.body}
+                  </p>
+                </div>
               </div>
-              {currentUserId === c.authorId && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  onClick={() => deleteMutation.mutate(c.id)}
-                >
-                  <Trash2 className="h-3.5 w-3.5 text-red-400" />
-                </Button>
-              )}
             </div>
           )
         )}

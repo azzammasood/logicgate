@@ -32,6 +32,9 @@ export async function GET(request: Request, { params }: Params) {
           sourceTable: definition.sourceTable,
           sourceValueField: definition.sourceValueField,
           sourceDateField: definition.sourceDateField,
+          joins: (definition.joins ?? null) as
+            | { table: string; type: string; on: string }[]
+            | null,
           aggregationFn: definition.aggregationFn,
           groupByPeriod: definition.groupByPeriod,
           dedupeBy: definition.dedupeBy,

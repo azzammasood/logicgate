@@ -10,7 +10,7 @@ export default function NotFound() {
       </p>
       <Link
         href="/app/definitions"
-        className="mt-8 inline-flex h-8 items-center justify-center rounded-lg bg-[#4ade80] px-4 text-sm font-medium text-black hover:bg-[#4ade80]/90"
+        className="mt-8 inline-flex h-8 items-center justify-center rounded-lg bg-[var(--accent)] px-4 text-sm font-medium text-black hover:bg-[#4ade80]/90"
       >
         Back to definitions
       </Link>

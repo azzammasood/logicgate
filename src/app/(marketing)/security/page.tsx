@@ -82,7 +82,7 @@ export default function SecurityPage() {
             <h3
               style={{
                 margin: "0 0 10px",
-                fontFamily: "Satoshi, sans-serif",
+                fontFamily: 'var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace',
                 fontWeight: 700,
                 fontSize: 16,
                 color: "#eef0f6",
@@ -115,7 +115,7 @@ export default function SecurityPage() {
             <h2
               style={{
                 margin: 0,
-                fontFamily: "Satoshi, sans-serif",
+                fontFamily: 'var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace',
                 fontWeight: 800,
                 fontSize: "clamp(28px, 3vw, 40px)",
                 letterSpacing: "-1.5px",

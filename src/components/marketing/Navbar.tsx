@@ -1,5 +1,9 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MarketingLogo } from "@/components/marketing/MarketingLogo";
+import { GetStartedButton } from "@/components/marketing/GetStartedButton";
 
 const NAV_LINKS = [
   { label: "Features", href: "/features" },
@@ -8,14 +12,18 @@ const NAV_LINKS = [
 ] as const;
 
 export function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <header
-      style={{
-        height: 62,
-        padding: "0 44px",
-        background: "transparent",
-      }}
-      className="flex shrink-0 items-center justify-between"
+      className={`marketing-nav${scrolled ? " is-scrolled" : ""}`}
     >
       <div className="flex min-w-0 flex-1 items-center gap-10">
         <MarketingLogo />
@@ -27,9 +35,7 @@ export function Navbar() {
           ))}
         </nav>
       </div>
-      <Link href="/#waitlist" className="marketing-cta shrink-0">
-        Join waitlist
-      </Link>
+      <GetStartedButton className="shrink-0" />
     </header>
   );
 }

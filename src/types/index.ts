@@ -32,7 +32,7 @@ export type WorkspaceSettings = {
   requireChangeReason?: boolean;
   requireApprovalForPublish?: boolean;
   defaultApproverId?: string;
-  sourceTables?: { name: string; columns: string[] }[];
+  sourceTables?: { name: string; description?: string; columns: string[] }[];
   webhookUrl?: string;
   dbtProjectUrl?: string;
 };

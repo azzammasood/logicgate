@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { toast } from "sonner";
 import type { WorkspaceSettings } from "@/types";
+import { Webhook, GitBranch, ExternalLink } from "lucide-react";
 
 export default function IntegrationsPage() {
   const workspaceId = useWorkspaceStore((s) => s.currentWorkspaceId);
@@ -57,30 +58,61 @@ export default function IntegrationsPage() {
           Save
         </Button>
       </Topbar>
-      <div className="max-w-xl space-y-5 overflow-y-auto p-6">
-        <div className="space-y-2">
-          <label className="text-xs text-[var(--fg-muted)]">Webhook URL</label>
+      <div className="lg-fade-up max-w-xl space-y-4 overflow-y-auto p-6">
+        <p className="text-sm text-[var(--fg-muted)]">
+          Connect LogicGate to the tools your team already uses. Both are optional.
+        </p>
+
+        <div className="space-y-3 rounded-xl border border-[var(--border-color)] bg-[var(--surface,#161920)] p-5">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)]/12 text-[var(--accent)]">
+              <Webhook className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-[var(--fg)]">Publish webhook</p>
+              <p className="text-xs leading-relaxed text-[var(--fg-muted)]">
+                We&apos;ll send a POST with the definition details every time one is
+                published — wire it into Slack, Zapier, or your own service.
+              </p>
+            </div>
+          </div>
           <Input
             value={settings.webhookUrl ?? ""}
             onChange={(e) => setSettings((s) => ({ ...s, webhookUrl: e.target.value }))}
             placeholder="https://hooks.example.com/…"
-            className="bg-[var(--surface,#161920)]"
+            className="bg-[var(--background,#0d0f14)] font-mono text-xs"
           />
-          <p className="text-[11px] text-[var(--fg-muted)]">
-            Receive a POST whenever a definition is published.
-          </p>
         </div>
-        <div className="space-y-2">
-          <label className="text-xs text-[var(--fg-muted)]">dbt project URL</label>
+
+        <div className="space-y-3 rounded-xl border border-[var(--border-color)] bg-[var(--surface,#161920)] p-5">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#a78bfa]/12 text-[#a78bfa]">
+              <GitBranch className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-[var(--fg)]">dbt project</p>
+              <p className="text-xs leading-relaxed text-[var(--fg-muted)]">
+                Link the repo that houses your dbt models so teammates can jump
+                straight from a definition to its project.
+              </p>
+            </div>
+          </div>
           <Input
             value={settings.dbtProjectUrl ?? ""}
             onChange={(e) => setSettings((s) => ({ ...s, dbtProjectUrl: e.target.value }))}
             placeholder="https://github.com/org/dbt-project"
-            className="bg-[var(--surface,#161920)]"
+            className="bg-[var(--background,#0d0f14)] font-mono text-xs"
           />
-          <p className="text-[11px] text-[var(--fg-muted)]">
-            Link exported pseudocode back to your dbt repo.
-          </p>
+          {settings.dbtProjectUrl?.trim() && /^https?:\/\//i.test(settings.dbtProjectUrl.trim()) && (
+            <a
+              href={settings.dbtProjectUrl.trim()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-[var(--accent)] hover:underline"
+            >
+              Open dbt project <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
         </div>
       </div>
     </div>

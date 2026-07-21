@@ -178,6 +178,10 @@ model Definition {
   sourceValueField String?
   sourceDateField  String?
   currency         String?
+  // Additional tables joined to sourceTable: [{ table, type, on }]
+  joins            Json?
+  // Manual ordering within its group in the list rail (drag-to-reorder).
+  sortOrder        Int              @default(0)
   aggregationFn    AggFn?
   groupByPeriod    GroupByPeriod?
   dedupeBy         String?
@@ -314,6 +318,14 @@ model Feedback {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+}
+
+model WaitlistSignup {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
 
   @@index([createdAt])
 }

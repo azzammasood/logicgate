@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "prisma generate && next dev",
+    "dev": "prisma generate && next dev -p 3001",
     "restart": "node scripts/restart-dev.mjs",
     "dev:stop": "node scripts/restart-dev.mjs --stop",
     "build": "prisma generate && next build",

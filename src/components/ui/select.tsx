@@ -60,10 +60,13 @@ function SelectContent({
   className,
   children,
   side = "bottom",
-  sideOffset = 4,
-  align = "center",
+  sideOffset = 6,
+  align = "start",
   alignOffset = 0,
-  alignItemWithTrigger = true,
+  // Open as a standard dropdown anchored below the trigger instead of overlaying
+  // the popup on top of it (base-ui's native-select-style default), which read
+  // as "opening upward / awkwardly offset".
+  alignItemWithTrigger = false,
   ...props
 }: SelectPrimitive.Popup.Props &
   Pick<
@@ -78,7 +81,7 @@ function SelectContent({
         align={align}
         alignOffset={alignOffset}
         alignItemWithTrigger={alignItemWithTrigger}
-        className="isolate z-50"
+        className="isolate z-[250]"
       >
         <SelectPrimitive.Popup
           data-slot="select-content"

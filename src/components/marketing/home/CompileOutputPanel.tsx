@@ -64,7 +64,6 @@ export function CompileOutputPanel({
       </div>
       <pre
         className={`compile-output-content marketing-mono${phase === "ready" ? " is-ready" : ""}`}
-        style={{ margin: 0, fontSize: 12, lineHeight: 2, whiteSpace: "pre-wrap" }}
       >
         <code>{highlightCode(displayCode, format)}</code>
       </pre>

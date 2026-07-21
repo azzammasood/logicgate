@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { AiAssistButton } from "@/components/ai/AiAssistButton";
+import { suggestChangeReason } from "@/lib/ai/assist";
 import { actionOverlay } from "@/stores/actionOverlay";
 import { toast } from "sonner";
 
@@ -72,6 +74,17 @@ export function ChangeRequestDialog({
             review before publish.
           </DialogDescription>
         </DialogHeader>
+        <div className="flex items-center justify-between">
+          <label className="text-xs text-white/50">Reason for change</label>
+          <AiAssistButton
+            label="Suggest with AI"
+            loadingLabel="Writing…"
+            onRun={async (cfg) => {
+              const suggested = await suggestChangeReason(definitionId, cfg);
+              if (suggested) setReason(suggested);
+            }}
+          />
+        </div>
         <Textarea
           placeholder="Reason for change…"
           value={reason}
@@ -87,7 +100,7 @@ export function ChangeRequestDialog({
             Cancel
           </Button>
           <Button
-            className="bg-[#4ade80] text-black"
+            className="bg-[var(--accent)] text-black"
             disabled={!valid || mutation.isPending}
             onClick={() => mutation.mutate()}
           >

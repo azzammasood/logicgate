@@ -14,17 +14,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AccountSettingsDialog } from "@/components/account/AccountSettingsDialog";
-import { PreferencesDialog } from "@/components/account/PreferencesDialog";
 import { FeedbackDialog } from "@/components/account/FeedbackDialog";
 import { DocsDialog } from "@/components/account/DocsDialog";
 import { NotificationsButton } from "@/components/account/NotificationsButton";
+import { useUiStore } from "@/stores/ui";
+import { useAiStore } from "@/stores/ai";
+import { shortModelName } from "@/lib/ai/models";
 import { cn } from "@/lib/utils";
 import { formatUserLocalTime } from "@/lib/timezones";
 
 export function UserProfileMenu({ collapsed }: { collapsed?: boolean }) {
   const router = useRouter();
+  const openPreferences = useUiStore((s) => s.openPreferences);
+  const aiModel = useAiStore((s) => s.model);
+  const aiAvailable = useAiStore((s) => s.apiKey.trim().length > 0 || s.baseUrl.trim().length > 0);
   const [accountOpen, setAccountOpen] = useState(false);
-  const [prefsOpen, setPrefsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [docsOpen, setDocsOpen] = useState(false);
   const [localTime, setLocalTime] = useState("");
@@ -65,8 +69,43 @@ export function UserProfileMenu({ collapsed }: { collapsed?: boolean }) {
     router.refresh();
   }
 
+  const aiStatusRow = (
+    <button
+      type="button"
+      onClick={() => openPreferences("ai")}
+      title={
+        aiAvailable
+          ? `AI model: ${aiModel}`
+          : "AI not configured — open Preferences → AI"
+      }
+      className={cn(
+        "flex w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-[10px] leading-tight outline-none transition-colors hover:bg-white/5",
+        aiAvailable ? "text-white/50" : "text-white/30"
+      )}
+    >
+      <span
+        className={cn(
+          "h-2 w-2 shrink-0 rounded-full",
+          aiAvailable
+            ? "lg-pulse-dot bg-[var(--accent)] shadow-[0_0_6px_var(--accent)]"
+            : "bg-white/25"
+        )}
+      />
+      <span className="truncate">
+        {aiAvailable ? shortModelName(aiModel) : "AI not available"}
+      </span>
+    </button>
+  );
+
   return (
     <>
+      {/* AI model status sits above the separator so it can't crowd the name/title. */}
+      {!collapsed && (
+        <>
+          {aiStatusRow}
+          <div className="my-1.5 border-t border-white/10" />
+        </>
+      )}
       <div className={cn("flex items-center gap-1", collapsed ? "flex-col" : "w-full")}>
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -85,12 +124,12 @@ export function UserProfileMenu({ collapsed }: { collapsed?: boolean }) {
               </AvatarFallback>
             </Avatar>
             {!collapsed && (
-              <span className="flex min-w-0 flex-1 flex-col text-left leading-tight">
-                <span className="truncate text-sm font-medium text-white/90">
+              <span className="flex min-w-0 flex-1 flex-col justify-center gap-[3px] text-left">
+                <span className="truncate text-sm font-medium leading-tight text-white/90">
                   {shortName || "Account"}
                 </span>
                 {user?.title && (
-                  <span className="truncate text-[11px] text-[var(--accent,#4ade80)]">
+                  <span className="truncate text-[11px] leading-tight text-[var(--accent,#4ade80)]">
                     {user.title}
                   </span>
                 )}
@@ -124,7 +163,7 @@ export function UserProfileMenu({ collapsed }: { collapsed?: boolean }) {
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer gap-2 text-white/90 focus:bg-white/10 focus:text-white data-highlighted:bg-white/10 data-highlighted:text-white"
-                onClick={() => setPrefsOpen(true)}
+                onClick={() => openPreferences("ai")}
               >
                 <Settings className="h-4 w-4" />
                 Preferences
@@ -159,7 +198,6 @@ export function UserProfileMenu({ collapsed }: { collapsed?: boolean }) {
       </div>
 
       <AccountSettingsDialog open={accountOpen} onOpenChange={setAccountOpen} user={user} />
-      <PreferencesDialog open={prefsOpen} onOpenChange={setPrefsOpen} />
       <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
       <DocsDialog open={docsOpen} onOpenChange={setDocsOpen} />
     </>

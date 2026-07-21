@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SectionCard, FieldRow } from "@/components/definitions/sections/SectionShell";
+import { GroupField, dedupeGroups, type Group } from "@/components/definitions/GroupField";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { actionOverlay } from "@/stores/actionOverlay";
 import { toast } from "sonner";
@@ -71,33 +72,43 @@ export function DefinitionSettingsPanel({
     setNewGroup("");
   }, [definition.id, definition.name, definition.description, definition.type, definition.groupId]);
 
-  const { data: groups } = useQuery({
+  const { data: groups = [] } = useQuery({
     queryKey: ["groups", workspaceId],
     queryFn: async () => {
       const res = await fetch(`/api/groups?workspaceId=${workspaceId}`);
       const json = await res.json();
-      return json.data ?? [];
+      return (json.data ?? []) as Group[];
     },
     enabled: !!workspaceId,
   });
+
+  const uniqueGroups = dedupeGroups(groups);
 
   const save = useMutation({
     mutationFn: async () => {
       let resolvedGroupId: string | null = groupId === "__none__" ? null : groupId;
       const trimmedNew = newGroup.trim();
       if (trimmedNew) {
-        const gRes = await fetch("/api/groups", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: trimmedNew,
-            workspaceId,
-            color: GROUP_COLORS[(groups?.length ?? 0) % GROUP_COLORS.length],
-          }),
-        });
-        const gJson = await gRes.json();
-        if (gJson.error) throw new Error(gJson.error);
-        resolvedGroupId = gJson.data.id;
+        // Reuse an existing group of the same name instead of duplicating it.
+        const existing = uniqueGroups.find(
+          (g) => g.name.trim().toLowerCase() === trimmedNew.toLowerCase()
+        );
+        if (existing) {
+          resolvedGroupId = existing.id;
+        } else {
+          const gRes = await fetch("/api/groups", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: trimmedNew,
+              workspaceId,
+              color: GROUP_COLORS[uniqueGroups.length % GROUP_COLORS.length],
+            }),
+          });
+          const gJson = await gRes.json();
+          if (gJson.error) throw new Error(gJson.error);
+          resolvedGroupId = gJson.data.id;
+        }
       }
       const res = await fetch(`/api/definitions/${definition.id}`, {
         method: "PATCH",
@@ -166,41 +177,22 @@ export function DefinitionSettingsPanel({
             </Select>
           </FieldRow>
           <FieldRow label="Group">
-            <Select
-              value={groupId}
-              onValueChange={(v) => {
-                if (!v) return;
-                setGroupId(v);
+            <GroupField
+              groups={uniqueGroups}
+              groupId={groupId === "__none__" ? "" : groupId}
+              newGroupName={newGroup}
+              onPick={(id) => {
+                setGroupId(id);
                 setNewGroup("");
               }}
-            >
-              <SelectTrigger className={triggerClass}>
-                <SelectValue placeholder="Select group">
-                  {groupId === "__none__"
-                    ? "No group"
-                    : groups?.find((g: { id: string; name: string }) => g.id === groupId)?.name ??
-                      "Select group"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className={contentClass}>
-                <SelectItem value="__none__">No group</SelectItem>
-                {groups?.map((g: { id: string; name: string }) => (
-                  <SelectItem key={g.id} value={g.id}>
-                    {g.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FieldRow>
-          <FieldRow label="New group">
-            <Input
-              placeholder="Create a new group instead"
-              value={newGroup}
-              onChange={(e) => {
-                setNewGroup(e.target.value);
-                if (e.target.value.trim()) setGroupId("__none__");
+              onCreate={(nm) => {
+                setNewGroup(nm);
+                setGroupId("__none__");
               }}
-              className={triggerClass}
+              onClear={() => {
+                setGroupId("__none__");
+                setNewGroup("");
+              }}
             />
           </FieldRow>
           <div className="flex items-start gap-4 py-2">

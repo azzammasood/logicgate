@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SectionCard, FieldRow } from "@/components/definitions/sections/SectionShell";
+import { SectionInfoTip } from "@/components/definitions/sections/SectionInfoTip";
 import { actionOverlay } from "@/stores/actionOverlay";
 import { toast } from "sonner";
 
@@ -25,6 +26,7 @@ type OwnershipSectionProps = {
   approverId: string | null;
   members: Member[];
   onSaved?: () => void;
+  defaultCollapsed?: boolean;
 };
 
 const triggerClass = "h-9 w-full bg-[var(--background,#0d0f14)]";
@@ -39,6 +41,7 @@ export function OwnershipSection({
   approverId,
   members,
   onSaved,
+  defaultCollapsed,
 }: OwnershipSectionProps) {
   const qc = useQueryClient();
   const [ownerList, setOwnerList] = useState<Owner[]>(owners);
@@ -143,9 +146,14 @@ export function OwnershipSection({
   return (
     <SectionCard
       icon={Users}
-      iconClassName="bg-emerald-500/15 text-emerald-400"
       title="Ownership"
-      rightLabel="Accountability"
+      defaultCollapsed={defaultCollapsed}
+      titleInfo={
+        <SectionInfoTip
+          description="Who owns and approves this definition. Owners are accountable for its correctness; the approver reviews change requests before they publish. The first owner (★) is primary."
+          example="Owners: Ayesha R. (primary), Dawood L. Approver: Dawood L."
+        />
+      }
     >
       <div className="space-y-3">
         <div>
@@ -154,13 +162,18 @@ export function OwnershipSection({
             {ownerList.map((o, i) => (
               <span
                 key={o.id}
-                className="flex items-center gap-1.5 rounded-full bg-[var(--accent)]/15 px-2.5 py-1 text-xs text-[var(--fg)]"
+                className="flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-xs text-[var(--fg)]"
               >
-                {i === 0 && <span className="text-[10px] text-[var(--accent)]">★</span>}
+                {i === 0 && (
+                  <span className="text-[9px] text-[var(--fg-muted)]" title="Primary owner">
+                    ★
+                  </span>
+                )}
                 {o.name || "Member"}
                 <button
                   type="button"
                   onClick={() => removeOwner(o.id)}
+                  aria-label={`Remove owner ${o.name || "member"}`}
                   className="text-[var(--fg-muted)] hover:text-red-400"
                 >
                   <X className="h-3 w-3" />
@@ -183,10 +196,13 @@ export function OwnershipSection({
               </span>
             ))}
             {ownerList.length === 0 && pendingEmails.length === 0 && (
-              <span className="text-xs text-[var(--fg-muted)]">No owners yet</span>
+              <span className="text-xs text-[var(--fg-muted)]">
+                No owners yet — add one so there&apos;s a clear person accountable for
+                this definition.
+              </span>
             )}
           </div>
-          <p className="mt-1 text-[10px] text-[var(--fg-muted)]">★ primary owner</p>
+          <p className="mt-1 text-[10px] text-[var(--fg-muted)]/60">★ primary owner</p>
         </div>
 
         {available.length > 0 && (

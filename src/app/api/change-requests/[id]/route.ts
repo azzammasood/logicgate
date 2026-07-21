@@ -3,6 +3,7 @@ import { apiResponse, requireSessionUser, getWorkspaceMember, requireWorkspaceMe
 import { patchChangeRequestSchema } from "@/lib/validators";
 import { canApprove } from "@/lib/permissions";
 import { createVersionSnapshot } from "@/lib/versioning";
+import { firePublishWebhook } from "@/lib/integrations";
 import { buildSnapshot, definitionInclude, type DefinitionSnapshot } from "@/lib/definitions";
 
 type Params = { params: Promise<{ id: string }> };
@@ -143,11 +144,22 @@ export async function PATCH(request: Request, { params }: Params) {
         });
       });
 
-      await createVersionSnapshot(
+      const version = await createVersionSnapshot(
         cr.definitionId,
         user.id,
         `Approved change: ${cr.changeDescription}`
       );
+
+      await firePublishWebhook(cr.definition.workspaceId, {
+        definition: {
+          id: cr.definitionId,
+          name: def.name,
+          type: def.type,
+          status: "PUBLISHED",
+          version,
+        },
+        message: `Approved change: ${cr.changeDescription}`,
+      });
     } else {
       await prisma.$transaction([
         prisma.changeRequest.update({

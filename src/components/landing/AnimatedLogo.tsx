@@ -29,62 +29,49 @@ export function AnimatedLogo({ className, size = 120 }: AnimatedLogoProps) {
         width={size}
         height={size}
         viewBox="0 0 48 48"
-        className="mx-auto block"
+        className="lg-logo mx-auto block"
         aria-hidden
       >
         <style>{`
-          @keyframes lg-badge-breathe {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.03); }
+          /* Static glow — animating filter every frame is a jank source, so the
+             halo stays constant and the life comes from cheap opacity/transform. */
+          .lg-logo { filter: drop-shadow(0 0 3px rgba(74, 222, 128, 0.28)); }
+          /* Nodes keep a constant size; only their opacity gently breathes. */
+          @keyframes lg-core-pulse {
+            0%, 100% { opacity: 0.72; }
+            50% { opacity: 1; }
           }
-          @keyframes lg-core-glow {
-            0%, 100% { opacity: 0.88; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.12); }
+          /* A soft expanding ping emitted from the core. */
+          @keyframes lg-ping {
+            0% { opacity: 0.4; transform: scale(0.6); }
+            70%, 100% { opacity: 0; transform: scale(2.2); }
           }
+          /* Data flowing along the connectors — cheap stroke-dashoffset only. */
           @keyframes lg-signal-flow {
-            0% { stroke-dashoffset: 10; opacity: 0.45; }
-            50% { stroke-dashoffset: 0; opacity: 1; }
-            100% { stroke-dashoffset: -10; opacity: 0.45; }
+            to { stroke-dashoffset: -12; }
           }
-          @keyframes lg-gate-left {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(-0.35px); }
-          }
-          @keyframes lg-gate-right {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(0.35px); }
-          }
-          .lg-badge-bg {
-            transform-origin: 24px 24px;
-            animation: lg-badge-breathe 3s ease-in-out infinite;
-          }
-          .lg-core {
-            transform-origin: 12px 4.5px;
-            animation: lg-core-glow 2.4s ease-in-out infinite;
-          }
-          .lg-signal {
-            stroke-dasharray: 10;
-            animation: lg-signal-flow 1.8s ease-in-out infinite;
-          }
-          .lg-gate-left {
-            transform-origin: 5px 12px;
-            animation: lg-gate-left 2.4s ease-in-out infinite;
-          }
-          .lg-gate-right {
-            transform-origin: 19px 12px;
-            animation: lg-gate-right 2.4s ease-in-out infinite;
+          @media (prefers-reduced-motion: no-preference) {
+            .lg-core {
+              animation: lg-core-pulse 2.6s ease-in-out infinite;
+              will-change: opacity;
+            }
+            .lg-ping {
+              transform-box: fill-box;
+              transform-origin: center;
+              animation: lg-ping 2.6s ease-out infinite;
+              will-change: opacity, transform;
+            }
+            .lg-signal {
+              stroke-dasharray: 3 3;
+              animation: lg-signal-flow 1.6s linear infinite;
+              will-change: stroke-dashoffset;
+            }
           }
         `}</style>
-        <rect
-          className="lg-badge-bg"
-          width="48"
-          height="48"
-          rx="10"
-          fill={LOGO_ACCENT}
-        />
+        <rect width="48" height="48" rx="10" fill={LOGO_ACCENT} />
         <g transform={tf} fill={LOGO_GLYPH_DARK}>
-          <rect className="lg-gate-left" x="2" y="9" width="6" height="6" rx="1.4" />
-          <rect className="lg-gate-right" x="16" y="9" width="6" height="6" rx="1.4" />
+          <rect x="2" y="9" width="6" height="6" rx="1.4" />
+          <rect x="16" y="9" width="6" height="6" rx="1.4" />
           <path
             className="lg-signal"
             d="M8 12h8"
@@ -92,6 +79,15 @@ export function AnimatedLogo({ className, size = 120 }: AnimatedLogoProps) {
             strokeWidth="1.8"
             strokeLinecap="round"
             fill="none"
+          />
+          <circle
+            className="lg-ping"
+            cx="12"
+            cy="4.5"
+            r="2.4"
+            fill="none"
+            stroke={LOGO_GLYPH_DARK}
+            strokeWidth="0.7"
           />
           <circle className="lg-core" cx="12" cy="4.5" r="2.4" />
           <path

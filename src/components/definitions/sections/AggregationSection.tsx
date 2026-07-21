@@ -43,18 +43,16 @@ export function AggregationSection({ values, onChange }: AggregationSectionProps
   return (
     <SectionCard
       icon={Sigma}
-      iconClassName="bg-purple-500/15 text-purple-400"
       title="Aggregation"
       titleInfo={
         <SectionInfoTip
-          description="Optional. Leave function empty when the definition is a filtered list or row set (e.g. churned users) with no roll-up. Use SUM, COUNT, etc. when you need a metric over time."
+          description="Leave function empty when the definition is a filtered list or row set (e.g. churned users) with no roll-up. Use SUM, COUNT, etc. when you need a metric over time."
           example="Churned users: no aggregation. Monthly revenue: SUM on amount_usd, group by calendar month."
         />
       }
-      rightLabel={hasAggregation ? "Metric" : "List / filter only"}
     >
       <div className="divide-y divide-white/5">
-        <FieldRow label="Function (optional)">
+        <FieldRow label="Function">
           <Select
             value={values.aggregationFn ?? NONE_AGG}
             onValueChange={(v) => {
@@ -82,7 +80,7 @@ export function AggregationSection({ values, onChange }: AggregationSectionProps
           </Select>
         </FieldRow>
 
-        <FieldRow label="Group by (optional)">
+        <FieldRow label="Group by">
           <Select
             value={values.groupByPeriod ?? ""}
             onValueChange={(v) => onChange({ groupByPeriod: v || null })}
@@ -103,7 +101,7 @@ export function AggregationSection({ values, onChange }: AggregationSectionProps
           </Select>
         </FieldRow>
 
-        <FieldRow label="Dedupe by (optional)">
+        <FieldRow label="Dedupe by">
           <div className="flex items-center gap-2">
             <Input
               placeholder="user_id"

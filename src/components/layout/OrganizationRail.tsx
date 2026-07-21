@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type MouseEvent as ReactMouseEvent } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/stores/workspace";
 import {
@@ -22,6 +23,17 @@ export function OrganizationRail() {
   const workspaceId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
   const [createOpen, setCreateOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+
+  function switchWorkspace(id: string) {
+    if (id === workspaceId) return;
+    setWorkspace(id);
+    // A record open on the current URL belongs to the old workspace — leave it.
+    if (/^\/app\/definitions\/[^/]+/.test(pathname)) {
+      router.push("/app/definitions");
+    }
+  }
 
   const { data: workspaces = [] } = useQuery({
     queryKey: ["workspaces"],
@@ -32,26 +44,43 @@ export function OrganizationRail() {
     },
   });
 
+  type Org = { id: string; name: string; logoUrl?: string | null; role?: string };
+  const [details, setDetails] = useState<{ org: Org; top: number } | null>(null);
+
+  function handleTile(w: Org, e: ReactMouseEvent<HTMLElement>) {
+    if (w.id === workspaceId) {
+      const top = e.currentTarget.getBoundingClientRect().top;
+      setDetails((d) => (d?.org.id === w.id ? null : { org: w, top }));
+    } else {
+      switchWorkspace(w.id);
+      setDetails(null);
+    }
+  }
+
   return (
     <>
       <aside className="hidden w-16 shrink-0 flex-col items-center gap-3 border-r border-white/10 bg-[#0a0c10] py-3 md:flex">
         <div className="flex flex-1 flex-col items-center gap-2 overflow-y-auto">
-          {workspaces.map((w: { id: string; name: string; logoUrl?: string | null }) => {
+          {workspaces.map((w: Org) => {
             const active = w.id === workspaceId;
             return (
               <Tooltip key={w.id}>
                 <TooltipTrigger
-                  onClick={() => setWorkspace(w.id)}
+                  onClick={(e) => handleTile(w, e)}
                   className={cn(
-                    "flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg text-xs font-semibold outline-none transition-colors",
+                    "flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl p-1 text-xs font-semibold outline-none transition-[background,color,box-shadow] duration-150",
                     active
-                      ? "bg-[var(--accent,#4ade80)]/20 text-[var(--accent,#4ade80)] ring-1 ring-[var(--accent,#4ade80)]/40"
+                      ? "bg-[var(--accent,#4ade80)]/20 text-[var(--accent,#4ade80)] ring-2 ring-[var(--accent,#4ade80)]/50"
                       : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
                   )}
                 >
                   {w.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={w.logoUrl} alt={w.name} className="h-full w-full object-cover" />
+                    <img
+                      src={w.logoUrl}
+                      alt={w.name}
+                      className="h-full w-full rounded-md object-contain"
+                    />
                   ) : (
                     orgInitials(w.name)
                   )}
@@ -64,7 +93,7 @@ export function OrganizationRail() {
           <Tooltip>
             <TooltipTrigger
               onClick={() => setCreateOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-dashed border-white/15 text-white/40 outline-none transition-colors hover:border-[var(--accent,#4ade80)]/40 hover:text-[var(--accent,#4ade80)]"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-dashed border-white/15 text-white/40 outline-none transition-colors duration-150 hover:border-[var(--accent,#4ade80)]/40 hover:bg-[var(--accent,#4ade80)]/5 hover:text-[var(--accent,#4ade80)]"
             >
               <Plus className="h-4 w-4" />
             </TooltipTrigger>
@@ -72,6 +101,50 @@ export function OrganizationRail() {
           </Tooltip>
         </div>
       </aside>
+
+      {/* Org details popover — blurred backdrop, anchored beside the rail. */}
+      {details && (
+        <div
+          className="fixed inset-0 z-[120]"
+          onClick={() => setDetails(null)}
+          role="presentation"
+        >
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ top: Math.max(12, details.top) }}
+            className="lg-pop absolute left-[4.75rem] w-64 rounded-xl border border-white/10 bg-[var(--surface,#161920)] p-4 shadow-2xl"
+          >
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[var(--accent,#4ade80)]/15 text-sm font-semibold text-[var(--accent,#4ade80)]">
+                {details.org.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={details.org.logoUrl} alt="" className="h-full w-full object-contain p-1" />
+                ) : (
+                  orgInitials(details.org.name)
+                )}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-white">{details.org.name}</p>
+                <p className="text-[11px] text-white/40">
+                  {details.org.role ? `${details.org.role.toLowerCase()} · ` : ""}Organization
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                router.push("/app/settings");
+                setDetails(null);
+              }}
+              className="hover-glow mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-[var(--background,#0d0f14)] py-2 text-xs font-medium text-white/80"
+            >
+              <Settings className="h-3.5 w-3.5" />
+              Edit organization
+            </button>
+          </div>
+        </div>
+      )}
 
       <CreateWorkspaceDialog
         open={createOpen}

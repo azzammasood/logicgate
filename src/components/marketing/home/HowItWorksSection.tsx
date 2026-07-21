@@ -36,19 +36,7 @@ export function HowItWorksSection() {
       </Reveal>
 
       <div style={{ position: "relative", marginTop: 52 }}>
-        <div
-          className="how-connector"
-          aria-hidden
-          style={{
-            position: "absolute",
-            top: 23,
-            left: "calc(12.5% + 8px)",
-            right: "calc(12.5% + 8px)",
-            height: 1,
-            background:
-              "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 15%, rgba(255,255,255,0.12) 85%, transparent 100%)",
-          }}
-        />
+        <div className="how-connector" aria-hidden />
 
         <div
           className="how-steps-grid"
@@ -70,12 +58,14 @@ export function HowItWorksSection() {
                   padding: "0 12px",
                 }}
               >
-                <div className="how-step-circle">{step.num}</div>
+                <div className="how-step-circle">
+                  <span className="how-step-num">{step.num}</span>
+                </div>
                 <h3
                   style={{
                     marginTop: 20,
                     marginBottom: 0,
-                    fontFamily: "Satoshi, sans-serif",
+                    fontFamily: 'var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace',
                     fontWeight: 700,
                     fontSize: 14,
                     color: "#eef0f6",

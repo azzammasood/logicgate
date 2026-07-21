@@ -21,17 +21,15 @@ function ProblemLine({
   return (
     <div
       style={{
-        background: "#181c27",
-        border: "1px solid rgba(255,255,255,0.07)",
+        background: "var(--bg3)",
+        border: "1px solid var(--border)",
         borderRadius: 7,
         padding: "9px 13px",
         fontFamily: 'var(--font-inter), "Inter", sans-serif',
         fontSize: 13,
         color,
         textDecoration: strikethrough ? "line-through" : "none",
-        textDecorationColor: strikethrough
-          ? "rgba(248,113,113,0.4)"
-          : undefined,
+        textDecorationColor: strikethrough ? "rgba(248,113,113,0.5)" : undefined,
       }}
     >
       {children}
@@ -40,13 +38,11 @@ function ProblemLine({
 }
 
 function ProblemCard({
-  accentGradient,
   dotColor,
   label,
   labelColor,
   children,
 }: {
-  accentGradient: string;
   dotColor: string;
   label: string;
   labelColor: string;
@@ -55,20 +51,12 @@ function ProblemCard({
   return (
     <div
       style={{
-        background: "#12151e",
-        border: "1px solid rgba(255,255,255,0.07)",
+        background: "var(--bg2)",
+        border: "1px solid var(--border)",
         borderRadius: 10,
         padding: 28,
-        overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          height: 2,
-          margin: "-28px -28px 24px",
-          background: accentGradient,
-        }}
-      />
       <div
         style={{
           display: "flex",
@@ -128,7 +116,6 @@ export function ProblemSection() {
       >
         <Reveal>
           <ProblemCard
-            accentGradient="linear-gradient(90deg, #f87171 0%, transparent 70%)"
             dotColor="#f87171"
             label="WITHOUT LOGICGATE"
             labelColor="#f87171"
@@ -137,7 +124,7 @@ export function ProblemSection() {
               <ProblemLine
                 key={line}
                 strikethrough={i < 4}
-                color={i < 4 ? "#4a5268" : "#f87171"}
+                color={i < 4 ? "var(--text3)" : "#f87171"}
               >
                 {line}
               </ProblemLine>
@@ -147,34 +134,33 @@ export function ProblemSection() {
 
         <Reveal>
           <ProblemCard
-            accentGradient="linear-gradient(90deg, #4ade80 0%, transparent 70%)"
             dotColor="#4ade80"
             label="WITH LOGICGATE"
             labelColor="#4ade80"
           >
-            <ProblemLine color="#8892a4">
-              <strong style={{ color: "#eef0f6", fontWeight: 600 }}>Ayesha R.</strong>{" "}
+            <ProblemLine color="var(--text2)">
+              <strong style={{ color: "var(--text)", fontWeight: 600 }}>Ayesha R.</strong>{" "}
               updated Monthly Active Revenue
             </ProblemLine>
-            <ProblemLine color="#8892a4">
+            <ProblemLine color="var(--text2)">
               Change:{" "}
               <em className="marketing-mono" style={{ fontStyle: "normal" }}>
                 type NOT IN [&quot;chargeback&quot;]
               </em>
             </ProblemLine>
-            <ProblemLine color="#8892a4">
+            <ProblemLine color="var(--text2)">
               Reason:{" "}
               <em style={{ fontStyle: "italic" }}>
                 &quot;Finance audit requires chargeback exclusion from MRR&quot;
               </em>
             </ProblemLine>
-            <ProblemLine color="#8892a4">
+            <ProblemLine color="var(--text2)">
               Approved by:{" "}
-              <strong style={{ color: "#eef0f6", fontWeight: 600 }}>
+              <strong style={{ color: "var(--text)", fontWeight: 600 }}>
                 Dawood L. — VP Data
               </strong>
             </ProblemLine>
-            <ProblemLine color="#4ade80">
+            <ProblemLine color="var(--accent)">
               Every change logged. Pseudocode auto-updated.
             </ProblemLine>
           </ProblemCard>

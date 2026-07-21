@@ -1,6 +1,7 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { CommandPalette } from "@/components/CommandPalette";
 import { AppShell } from "@/components/layout/AppShell";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { WorkspaceProvider } from "@/components/providers/WorkspaceProvider";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -8,7 +9,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <ErrorBoundary>
       <WorkspaceProvider>
         <AppShell>
-          {children}
+          <PageTransition>{children}</PageTransition>
           <CommandPalette />
         </AppShell>
       </WorkspaceProvider>

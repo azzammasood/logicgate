@@ -50,11 +50,25 @@ export async function PATCH(request: Request, { params }: Params) {
       return apiResponse(null, { error: parsed.error.message, status: 400 });
     }
 
+    const data = { ...parsed.data };
+
+    // Once other members have joined, the org name is locked — silently drop a
+    // rename attempt so the rest of the edits still save.
+    if (data.name !== undefined) {
+      const current = await prisma.workspace.findUnique({
+        where: { id },
+        select: { name: true, _count: { select: { members: true } } },
+      });
+      if (current && current._count.members > 1 && data.name !== current.name) {
+        delete data.name;
+      }
+    }
+
     const updated = await prisma.workspace.update({
       where: { id },
       data: {
-        ...parsed.data,
-        workspaceSettings: parsed.data.workspaceSettings as object | undefined,
+        ...data,
+        workspaceSettings: data.workspaceSettings as object | undefined,
       },
     });
 

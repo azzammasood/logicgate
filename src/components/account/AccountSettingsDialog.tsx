@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { COMMON_TIMEZONES, TIMEZONE_LABELS } from "@/lib/timezones";
 import { USER_ROLES, formatUserRole } from "@/lib/roles";
+import { ImageCropperDialog } from "@/components/ui/ImageCropperDialog";
 
 const selectContentClass =
   "z-[200] border border-white/10 bg-[#161920] shadow-xl";
@@ -56,6 +57,7 @@ export function AccountSettingsDialog({
   const [about, setAbout] = useState("");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [cropFile, setCropFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -68,17 +70,18 @@ export function AccountSettingsDialog({
     }
   }, [user, open]);
 
-  const uploadAvatar = async (file: File) => {
+  const uploadAvatar = async (blob: Blob) => {
     setUploading(true);
     try {
       const form = new FormData();
-      form.append("file", file);
+      form.append("file", new File([blob], "avatar.jpg", { type: "image/jpeg" }));
       const res = await fetch("/api/users/me/avatar", { method: "POST", body: form });
       const json = await res.json();
       if (json.error) throw new Error(json.error);
       setAvatarPreview(json.data.avatarUrl);
       await qc.invalidateQueries({ queryKey: ["auth-me"] });
       toast.success("Photo updated");
+      setCropFile(null);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Upload failed");
     } finally {
@@ -146,7 +149,7 @@ export function AccountSettingsDialog({
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) void uploadAvatar(file);
+                  if (file) setCropFile(file);
                   e.target.value = "";
                 }}
               />
@@ -232,6 +235,18 @@ export function AccountSettingsDialog({
           </Button>
         </div>
       </DialogContent>
+
+      <ImageCropperDialog
+        file={cropFile}
+        open={!!cropFile}
+        onOpenChange={(o) => {
+          if (!o) setCropFile(null);
+        }}
+        onCropped={uploadAvatar}
+        shape="circle"
+        title="Crop your photo"
+        busy={uploading}
+      />
     </Dialog>
   );
 }

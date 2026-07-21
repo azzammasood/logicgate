@@ -31,6 +31,22 @@ export function apiResponse<T>(
   );
 }
 
+/**
+ * Invites can pre-create a placeholder User row (keyed by a random id) for an
+ * email that hasn't signed up yet. When that person authenticates, their real
+ * row must be keyed by the Supabase auth id — but the email is unique, so a
+ * naive create collides. This re-points the placeholder row (and its cascading
+ * memberships) to the real auth id so pre-created invites attach correctly.
+ */
+export async function reconcileInvitedUser(email: string, authId: string): Promise<void> {
+  const byEmail = await prisma.user.findUnique({ where: { email } });
+  if (byEmail && byEmail.id !== authId) {
+    // FK relations to User use ON UPDATE CASCADE (Prisma default), so updating
+    // the primary key migrates WorkspaceMember/ownership rows with it.
+    await prisma.user.update({ where: { email }, data: { id: authId } });
+  }
+}
+
 export async function getSessionUser(): Promise<User | null> {
   const supabase = await createClient();
   const {

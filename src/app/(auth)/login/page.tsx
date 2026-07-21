@@ -6,14 +6,20 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 import { toast } from "sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { AnimatedLogo } from "@/components/landing/AnimatedLogo";
+import { useSessionUser } from "@/lib/supabase/useSessionUser";
+import { ContinueAsUser } from "@/components/auth/ContinueAsUser";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
+  const { user, loading: sessionLoading } = useSessionUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,39 +44,83 @@ function LoginForm() {
       toast.error(err instanceof Error ? err.message : "Sign-in sync failed");
       return;
     }
-    router.push(searchParams.get("redirect") ?? "/app/definitions");
+    router.push(searchParams.get("redirect") ?? "/app/dashboard");
     router.refresh();
   }
 
   async function handlePassword(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      await syncAndRedirect();
+    } catch {
+      toast.error(
+        "Couldn't reach the authentication server. Check your connection or Supabase configuration."
+      );
+    } finally {
+      setLoading(false);
     }
-    await syncAndRedirect();
   }
 
   async function handleMagicLink() {
     setLoading(true);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/app/definitions` },
-    });
-    setLoading(false);
-    if (error) toast.error(error.message);
-    else toast.success("Check your email for the magic link");
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/app/dashboard` },
+      });
+      if (error) toast.error(error.message);
+      else toast.success("Check your email for the magic link");
+    } catch {
+      toast.error(
+        "Couldn't reach the authentication server. Check your connection or Supabase configuration."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleForgotPassword() {
+    if (!EMAIL_RE.test(email.trim())) {
+      toast.error("Enter your email above first, then click “Forgot password”.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) toast.error(error.message);
+      else toast.success("Password reset link sent — check your email.");
+    } catch {
+      toast.error(
+        "Couldn't reach the authentication server. Check your connection or Supabase configuration."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (sessionLoading) {
+    return <div className="text-white/50">Loading…</div>;
+  }
+
+  if (user) {
+    return <ContinueAsUser user={user} />;
   }
 
   return (
     <div className="w-full max-w-md rounded-lg border border-white/10 bg-[#161920] p-8">
       <AnimatedLogo size={72} className="mb-6" />
-      <h1 className="font-[family-name:var(--font-syne)] text-2xl font-bold text-[#4ade80]">
+      <h1 className="font-[family-name:var(--font-auth-mono)] text-2xl font-bold text-[#4ade80]">
         LogicGate
       </h1>
       <p className="mt-2 text-sm text-white/50">Sign in to your workspace</p>
@@ -83,18 +133,29 @@ function LoginForm() {
           required
           className="bg-[#0d0f14] border-white/10"
         />
-        <Input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="bg-[#0d0f14] border-white/10"
-        />
+        <div className="space-y-1.5">
+          <PasswordInput
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="bg-[#0d0f14] border-white/10"
+          />
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              disabled={loading}
+              className="text-xs text-white/40 transition-colors hover:text-[#4ade80] disabled:opacity-50"
+            >
+              Forgot password?
+            </button>
+          </div>
+        </div>
         <Button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#4ade80] text-black hover:bg-[#4ade80]/90"
+          className="w-full bg-[var(--accent)] text-black hover:bg-[#4ade80]/90"
         >
           Sign in
         </Button>

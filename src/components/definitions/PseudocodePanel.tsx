@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PseudocodeBlock } from "@/components/definitions/PseudocodeBlock";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,7 @@ export function PseudocodePanel({
   const sidebar = variant === "sidebar";
   const lang = FORMATS.find((f) => f.id === format)?.lang ?? "sql";
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isFetching } = useQuery({
     queryKey: ["pseudocode", definitionId, format],
     queryFn: async () => {
       const res = await fetch(
@@ -37,7 +37,12 @@ export function PseudocodePanel({
       return json.data as { code: string; format: string; compiledAt: string };
     },
     enabled: !!definitionId,
+    // Keep the previous format's code visible while the new one compiles.
+    placeholderData: keepPreviousData,
   });
+
+  const code = data?.code;
+  const compiledAt = data?.compiledAt;
 
   return (
     <div className={cn("flex h-full flex-col", sidebar ? "p-3" : "p-6")}>
@@ -55,19 +60,31 @@ export function PseudocodePanel({
         </TabsList>
         {FORMATS.map((f) => (
           <TabsContent key={f.id} value={f.id} className="mt-0 min-h-0 flex-1 overflow-hidden">
-            {isLoading && <p className="text-xs text-white/40">Compiling…</p>}
             {isError && <p className="text-xs text-red-400">Failed to compile.</p>}
-            {data?.code && (
-              <PseudocodeBlock
-                code={data.code}
-                language={lang}
-                compact={sidebar}
-                className={sidebar ? undefined : "min-h-[min(70vh,600px)]"}
-              />
+            {isLoading && !code && (
+              <div className={cn(
+                "flex items-center justify-center rounded-lg border border-white/10 bg-[#0d0f14]",
+                sidebar ? "h-[160px]" : "min-h-[min(70vh,600px)]"
+              )}>
+                <span className="flex items-center gap-2 text-xs text-white/40">
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border border-[var(--accent)]/40 border-t-[var(--accent)]" />
+                  Compiling…
+                </span>
+              </div>
             )}
-            {data?.compiledAt && (
+            {code && (
+              <div className={cn("transition-opacity duration-200", isFetching && "opacity-60")}>
+                <PseudocodeBlock
+                  code={code}
+                  language={lang}
+                  compact={sidebar}
+                  className={sidebar ? undefined : "min-h-[min(70vh,600px)]"}
+                />
+              </div>
+            )}
+            {compiledAt && (
               <p className="mt-2 text-[10px] text-white/30">
-                Compiled {new Date(data.compiledAt).toLocaleString()}
+                Compiled {new Date(compiledAt).toLocaleString()}
               </p>
             )}
           </TabsContent>

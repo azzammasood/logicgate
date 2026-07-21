@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { AiAssistButton } from "@/components/ai/AiAssistButton";
+import { suggestChangeReason } from "@/lib/ai/assist";
 import { actionOverlay } from "@/stores/actionOverlay";
 import { toast } from "sonner";
 
@@ -65,13 +67,26 @@ export function PublishDialog({
             Publishing records a new version in history. Describe what changed, like a commit message.
           </DialogDescription>
         </DialogHeader>
-        <Textarea
-          autoFocus
-          placeholder="e.g. Added trial-user exclusion to revenue rule"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className="min-h-[100px] bg-[var(--background,#0d0f14)]"
-        />
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <label className="text-xs text-[var(--fg-muted)]">Change reason</label>
+            <AiAssistButton
+              label="Suggest with AI"
+              loadingLabel="Writing…"
+              onRun={async (cfg) => {
+                const reason = await suggestChangeReason(definitionId, cfg);
+                if (reason) setMessage(reason);
+              }}
+            />
+          </div>
+          <Textarea
+            autoFocus
+            placeholder="e.g. Added trial-user exclusion to revenue rule"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            className="min-h-[100px] bg-[var(--background,#0d0f14)]"
+          />
+        </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel

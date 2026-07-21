@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, Settings, Users } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserProfileMenu } from "@/components/layout/UserProfileMenu";
 
 const items = [
+  { href: "/app/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/app/definitions", label: "Definitions", icon: FileText },
   { href: "/app/team", label: "Team", icon: Users },
   { href: "/app/settings", label: "Settings", icon: Settings },

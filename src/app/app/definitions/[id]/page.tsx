@@ -3,34 +3,30 @@
 import { use, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { PageLoader } from "@/components/layout/PageLoader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VisualBuilder } from "@/components/definitions/VisualBuilder";
-import { PseudocodePanel } from "@/components/definitions/PseudocodePanel";
 import { ChangelogPanel } from "@/components/definitions/ChangelogPanel";
 import { DiscussPanel } from "@/components/definitions/DiscussPanel";
 import { DefinitionSettingsPanel } from "@/components/definitions/DefinitionSettingsPanel";
 import { DefinitionSkeleton } from "@/components/skeletons/DefinitionSkeleton";
 import { useWorkspaceStore } from "@/stores/workspace";
-import { cn } from "@/lib/utils";
+import { useRecentStore } from "@/stores/recent";
 import type { WorkspaceSettings } from "@/types";
 
 type PageProps = { params: Promise<{ id: string }> };
 
-const statusStyles: Record<string, string> = {
-  PUBLISHED: "bg-[var(--accent)]/15 text-[var(--accent)]",
-  DRAFT: "bg-white/10 text-[var(--fg-muted)]",
-  PENDING_REVIEW: "bg-amber-500/15 text-amber-400",
-  DEPRECATED: "bg-red-500/15 text-red-400",
-};
-
-const VALID_TABS = ["builder", "pseudocode", "changelog", "discuss", "settings"] as const;
+const VALID_TABS = ["builder", "changelog", "discuss", "settings"] as const;
 
 export default function DefinitionDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const searchParams = useSearchParams();
   const workspaceId = useWorkspaceStore((s) => s.currentWorkspaceId);
+  const pushRecent = useRecentStore((s) => s.pushRecent);
   const [tab, setTab] = useState("builder");
+
+  useEffect(() => {
+    if (id) pushRecent(id);
+  }, [id, pushRecent]);
 
   useEffect(() => {
     const t = searchParams.get("tab");
@@ -85,12 +81,14 @@ export default function DefinitionDetailPage({ params }: PageProps) {
   const settings = (workspace?.workspaceSettings ?? {}) as WorkspaceSettings;
 
   if (isLoading) {
-    return (
-      <>
-        <DefinitionSkeleton />
-        <PageLoader active message="Loading definition…" />
-      </>
-    );
+    return <DefinitionSkeleton />;
+  }
+
+  // Guard against a flash of a foreign definition right after switching orgs:
+  // this record belongs to another workspace, so don't render it (the org rail
+  // is navigating away). Showing the skeleton avoids the brief content flash.
+  if (definition && definition.workspaceId && workspaceId && definition.workspaceId !== workspaceId) {
+    return <DefinitionSkeleton />;
   }
 
   if (!definition) {
@@ -101,30 +99,18 @@ export default function DefinitionDetailPage({ params }: PageProps) {
     <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <TabsList className="mx-6 mt-4 w-fit shrink-0 bg-[var(--surface,#161920)]">
         <TabsTrigger value="builder">Visual Builder</TabsTrigger>
-        <TabsTrigger value="pseudocode">Pseudocode</TabsTrigger>
         <TabsTrigger value="changelog">Changelog</TabsTrigger>
         <TabsTrigger value="discuss">Discuss</TabsTrigger>
         <TabsTrigger value="settings">Settings</TabsTrigger>
       </TabsList>
 
       <TabsContent value="builder" className="min-h-0 flex-1 overflow-y-auto">
-        <div className="px-6 pt-6">
-          <div className="flex items-center gap-3">
-            <h1 className="font-[family-name:var(--font-syne)] text-2xl font-bold text-[var(--fg)]">
-              {definition.name}
-            </h1>
-            <span
-              className={cn(
-                "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium capitalize",
-                statusStyles[definition.status] ?? statusStyles.DRAFT
-              )}
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-current" />
-              {definition.status.toLowerCase().replace("_", " ")}
-            </span>
-          </div>
+        <div className="lg-fade-up px-6 pt-5">
+          <h1 className="font-[family-name:var(--app-font)] text-2xl font-bold leading-tight text-[var(--fg)]">
+            {definition.name}
+          </h1>
           {definition.description && (
-            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-[var(--fg-muted)]">
+            <p className="mt-1 max-w-3xl text-sm leading-relaxed text-[var(--fg-muted)]">
               {definition.description}
             </p>
           )}
@@ -132,11 +118,14 @@ export default function DefinitionDetailPage({ params }: PageProps) {
         <VisualBuilder
           definition={{
             id: definition.id,
+            name: definition.name,
+            type: definition.type,
             documentation: definition.documentation,
             sourceTable: definition.sourceTable,
             sourceValueField: definition.sourceValueField,
             sourceDateField: definition.sourceDateField,
             currency: definition.currency,
+            joins: definition.joins ?? [],
             aggregationFn: definition.aggregationFn,
             groupByPeriod: definition.groupByPeriod,
             dedupeBy: definition.dedupeBy,
@@ -150,10 +139,6 @@ export default function DefinitionDetailPage({ params }: PageProps) {
           members={members}
           onSaved={() => refetch()}
         />
-      </TabsContent>
-
-      <TabsContent value="pseudocode" className="min-h-0 flex-1 overflow-hidden">
-        <PseudocodePanel definitionId={id} />
       </TabsContent>
 
       <TabsContent value="changelog" className="min-h-0 flex-1 overflow-y-auto">

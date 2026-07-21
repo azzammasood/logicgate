@@ -18,7 +18,7 @@ export async function PUT(request: Request, { params }: Params) {
     }
 
     const member = await getWorkspaceMember(user.id, definition.workspaceId);
-    if (!member || !canEdit(user, definition, member)) {
+    if (!canEdit(user, definition, member)) {
       return apiResponse(null, { error: "Forbidden", status: 403 });
     }
 

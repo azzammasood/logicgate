@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { MessageSquare } from "lucide-react";
 import { Topbar } from "@/components/layout/Topbar";
-import { PageLoader } from "@/components/layout/PageLoader";
 import { EmptyState } from "@/components/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspaceStore } from "@/stores/workspace";
 
 function formatParticipantList(names: string[]) {
@@ -40,8 +40,20 @@ export default function DiscussionsPage() {
   return (
     <div className="flex h-full flex-col bg-[#0d0f14]">
       <Topbar title="Discussions" />
-      <PageLoader active={isLoading} message="Loading discussions…" />
       <div className="flex-1 overflow-y-auto p-6">
+        {isLoading && (
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-start gap-4 rounded-lg border border-white/10 bg-[#161920] p-4">
+                <Skeleton className="h-10 w-10 rounded-lg" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         {!isLoading && threads.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16">
             <EmptyState variant="no-comments" />
@@ -51,7 +63,7 @@ export default function DiscussionsPage() {
             </p>
           </div>
         )}
-        <ul className="space-y-3">
+        <ul className="lg-stagger space-y-3">
           {threads.map((t) => (
             <li key={t.definitionId}>
               <button
@@ -59,9 +71,9 @@ export default function DiscussionsPage() {
                 onClick={() =>
                   router.push(`/app/definitions/${t.definitionId}?tab=discuss`)
                 }
-                className="flex w-full items-start gap-4 rounded-lg border border-white/10 bg-[#161920] p-4 text-left transition-colors hover:border-[#4ade80]/30"
+                className="group flex w-full items-start gap-4 rounded-lg border border-white/10 bg-[#161920] p-4 text-left transition-colors hover:border-[#4ade80]/30 hover:bg-[#1a1e29]"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#4ade80]/10">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#4ade80]/10 transition-transform duration-150 group-hover:scale-110">
                   <MessageSquare className="h-5 w-5 text-[#4ade80]" />
                 </span>
                 <div className="min-w-0 flex-1">

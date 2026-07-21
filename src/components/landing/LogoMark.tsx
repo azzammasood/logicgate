@@ -54,7 +54,7 @@ function LogoBadgeSvg({
         width="48"
         height="48"
         rx={rx}
-        fill="var(--accent, #4ade80)"
+        fill="#4ade80"
       />
       <g transform={tf} fill={LOGO_GLYPH_DARK}>
         <rect

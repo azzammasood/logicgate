@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { apiResponse, getInitials } from "@/lib/api";
+import { apiResponse, getInitials, reconcileInvitedUser } from "@/lib/api";
 import { UserRole } from "@prisma/client";
 import type { AppUserRole } from "@/lib/roles";
 
@@ -29,6 +29,8 @@ export async function POST() {
     const meta = user.user_metadata as { name?: string; role?: string };
     const name = meta.name ?? user.email.split("@")[0];
     const role = mapSignupRole(meta.role);
+
+    await reconcileInvitedUser(user.email, user.id);
 
     const dbUser = await prisma.user.upsert({
       where: { id: user.id },

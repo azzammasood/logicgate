@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { AlertTriangle } from "lucide-react";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -36,13 +36,45 @@ function useDefinitionId() {
   return pathname.match(/\/app\/definitions\/([^/]+)/)?.[1] ?? null;
 }
 
+/**
+ * The auto-compiled sidebar is the minimal view — strip comment-only lines
+ * (`--`, `#`, `//`) and Python docstrings (`"""…"""`) so it reads as clean
+ * code. Comments/docstrings are kept for the dedicated Pseudocodes page and
+ * exports. Falls back to the raw code if stripping would leave nothing.
+ */
+function stripComments(code: string): string {
+  let inDocstring = false;
+  const stripped = code
+    .split("\n")
+    .filter((line) => {
+      const t = line.trim();
+      if (!t) return true;
+      // Drop triple-quoted docstrings, single- or multi-line.
+      if (inDocstring) {
+        if (t.endsWith('"""') || t.endsWith("'''")) inDocstring = false;
+        return false;
+      }
+      if (t.startsWith('"""') || t.startsWith("'''")) {
+        // Single-line docstring closes on the same line; otherwise it spans.
+        const isSingleLine = t.length > 3 && (t.endsWith('"""') || t.endsWith("'''"));
+        if (!isSingleLine) inDocstring = true;
+        return false;
+      }
+      return !(t.startsWith("--") || t.startsWith("#") || t.startsWith("//"));
+    })
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return stripped || code.trim();
+}
+
 export function PseudocodeSidebar() {
   const definitionId = useDefinitionId();
   const workspaceId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const [format, setFormat] = useState<string>("generic");
   const lang = FORMATS.find((f) => f.id === format)?.lang ?? "sql";
 
-  const { data: pseudocode } = useQuery({
+  const { data: pseudocode, isFetching: pseudoFetching } = useQuery({
     queryKey: ["pseudocode", definitionId, format],
     queryFn: async () => {
       const res = await fetch(`/api/definitions/${definitionId}/pseudocode?format=${format}`);
@@ -50,6 +82,9 @@ export function PseudocodeSidebar() {
       return json.data as { code: string; compiledAt: string } | null;
     },
     enabled: !!definitionId,
+    // Keep the previous format's code on screen while the new one compiles so
+    // the panel doesn't collapse and shove the version history around.
+    placeholderData: keepPreviousData,
   });
 
   const { data: versions = [] } = useQuery({
@@ -127,11 +162,22 @@ export function PseudocodeSidebar() {
           ))}
         </div>
 
-        {pseudocode?.code ? (
-          <PseudocodeBlock code={pseudocode.code} language={lang} />
-        ) : (
-          <p className="text-[12px] text-[var(--fg-muted)]">Compiling…</p>
-        )}
+        <div className="relative min-h-[180px]">
+          {pseudocode?.code ? (
+            <PseudocodeBlock code={stripComments(pseudocode.code)} language={lang} compact />
+          ) : (
+            <div className="h-[180px] rounded-lg border border-[var(--border-color)] bg-[var(--background,#0d0f14)]/60" />
+          )}
+          {/* Loading overlay while (re)compiling a format. */}
+          {pseudoFetching && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-[var(--background,#0d0f14)]/55 backdrop-blur-[1px]">
+              <span className="flex items-center gap-2 rounded-full border border-[var(--accent)]/25 bg-[var(--surface,#161920)] px-3 py-1.5 text-[12px] text-[var(--accent)] shadow-lg">
+                <span className="h-3 w-3 animate-spin rounded-full border border-[var(--accent)]/40 border-t-[var(--accent)]" />
+                Compiling {FORMATS.find((f) => f.id === format)?.label ?? ""}…
+              </span>
+            </div>
+          )}
+        </div>
 
         <div>
           <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">

@@ -18,7 +18,9 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              `connect-src 'self' https://${supabaseHost} wss://${supabaseHost}`,
+              // Allow client-side AI calls: OpenRouter, plus local OpenAI-compatible
+              // endpoints (Ollama, LM Studio, vLLM) the user may configure.
+              `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://openrouter.ai http://localhost:* http://127.0.0.1:*`,
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
@@ -27,14 +29,10 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      {
-        source: "/api/:path*",
-        headers: [
-          { key: "Access-Control-Allow-Origin", value: "*" },
-          { key: "Access-Control-Allow-Methods", value: "GET,POST,PATCH,PUT,DELETE,OPTIONS" },
-          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
-        ],
-      },
+      // NOTE: no CORS headers on /api — the app is same-origin and the client's
+      // AI calls go directly to OpenRouter, not through our API. A wildcard
+      // `Access-Control-Allow-Origin: *` would needlessly expose the API surface
+      // to any origin, so it's intentionally omitted.
     ];
   },
 };

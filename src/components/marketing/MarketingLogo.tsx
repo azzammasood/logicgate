@@ -36,7 +36,7 @@ export function MarketingLogo({ badgeSize = 26, href = "/" }: MarketingLogoProps
       </svg>
       <span
         className="text-[15px] leading-none text-[var(--text)]"
-        style={{ fontFamily: "Satoshi, sans-serif", fontWeight: 700 }}
+        style={{ fontFamily: 'var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace', fontWeight: 700 }}
       >
         LogicGate
       </span>

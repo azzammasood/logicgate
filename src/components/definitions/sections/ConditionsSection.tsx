@@ -109,8 +109,8 @@ function SortableRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-[var(--background,#0d0f14)] px-2 py-2",
-        isDragging && "opacity-60"
+        "group flex flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-[var(--background,#0d0f14)] px-2 py-2 transition-colors duration-150 hover:border-white/20",
+        isDragging && "border-[var(--accent,#4ade80)]/40 opacity-70 shadow-lg shadow-black/30"
       )}
     >
       <button
@@ -238,7 +238,6 @@ export function ConditionsSection({ conditions, onChange, debounceMs = 800 }: Co
   return (
     <SectionCard
       icon={Filter}
-      iconClassName="bg-amber-500/15 text-amber-400"
       title="Filter Logic"
       titleInfo={
         <SectionInfoTip
@@ -246,9 +245,13 @@ export function ConditionsSection({ conditions, onChange, debounceMs = 800 }: Co
           example="status is completed AND type not in refund, chargeback."
         />
       }
-      rightLabel={`${local.length} condition${local.length === 1 ? "" : "s"}`}
     >
       <div className="space-y-2">
+        {local.length === 0 && (
+          <p className="rounded-lg border border-dashed border-white/10 px-3 py-3 text-center text-[11px] text-white/35">
+            No filters yet — every row is included. Add a condition to narrow the result.
+          </p>
+        )}
         {local.length > 0 && (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={sortIds} strategy={verticalListSortingStrategy}>

@@ -34,16 +34,19 @@ export function PseudocodeBlock({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-lg border border-[var(--border-color)] bg-[#0a0c10]",
+        // Fixed dark styling (theme-independent) so the syntax colors stay
+        // legible on light themes too — a dark code block on a light UI.
+        "overflow-hidden rounded-lg border border-[#232a35] bg-[#0a0c10]",
         className
       )}
     >
-      <div className="flex items-center justify-between border-b border-white/5 px-3 py-2">
-        <span className="text-xs font-medium text-[var(--fg-muted)]">{label}</span>
+      <div className="flex items-center justify-between border-b border-[#232a35] px-3 py-2">
+        <span className="truncate text-xs font-medium text-[#8b949e]">{label}</span>
         <button
           type="button"
           onClick={copyCode}
-          className="flex items-center gap-1 text-xs text-[var(--fg-muted)] transition-colors hover:text-[var(--fg)]"
+          aria-label="Copy code"
+          className="flex shrink-0 items-center gap-1 text-xs text-[#8b949e] transition-colors hover:text-[#e6edf3]"
         >
           {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
           Copy
@@ -67,7 +70,6 @@ export function PseudocodeBlock({
             fontFamily: "var(--font-mono, ui-monospace, monospace)",
           }}
           showLineNumbers={false}
-          wrapLongLines
         >
           {code}
         </SyntaxHighlighter>

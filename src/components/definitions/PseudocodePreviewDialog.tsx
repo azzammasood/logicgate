@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +44,9 @@ export function PseudocodePreviewDialog({
       return json.data as { code: string; compiledAt: string };
     },
     enabled: open && !!definition?.id,
+    // Keep the previous language's code on screen while the new one compiles so
+    // the swap can slide in smoothly instead of flashing a loader.
+    placeholderData: keepPreviousData,
   });
 
   if (!definition) return null;
@@ -71,10 +74,10 @@ export function PseudocodePreviewDialog({
             <TabsContent
               key={f.id}
               value={f.id}
-              className="mt-0 min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-4"
+              className="mt-0 min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-6 pb-6 pt-4"
             >
               {format === f.id && (
-                <>
+                <div key={format} className="lg-pseudo-slide">
                   {isLoading && (
                     <div className="flex min-h-[min(52vh,420px)] flex-col items-center justify-center gap-3 rounded-lg border border-white/10 bg-[#0d0f14]">
                       <AnimatedLogo size={56} />
@@ -85,7 +88,7 @@ export function PseudocodePreviewDialog({
                     <PseudocodeBlock
                       code={data.code}
                       language={lang}
-                      label="pseudocode"
+                      label={`${f.label.toLowerCase()} · ${definition.name}`}
                       className="min-h-[min(52vh,420px)]"
                     />
                   )}
@@ -94,7 +97,7 @@ export function PseudocodePreviewDialog({
                       Compiled {new Date(data.compiledAt).toLocaleString()}
                     </p>
                   )}
-                </>
+                </div>
               )}
             </TabsContent>
           ))}

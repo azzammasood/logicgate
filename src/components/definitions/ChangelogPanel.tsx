@@ -14,7 +14,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PageLoader } from "@/components/layout/PageLoader";
 import { VersionDiffDialog } from "@/components/definitions/VersionDiffDialog";
 import { actionOverlay } from "@/stores/actionOverlay";
 import { toast } from "sonner";
@@ -65,7 +64,6 @@ export function ChangelogPanel({ definitionId, onRestored }: ChangelogPanelProps
 
   return (
     <div className="space-y-3 p-6">
-      <PageLoader active={isLoading} message="Loading changelog…" />
       {isLoading &&
         Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="lg-skeleton h-[72px] rounded-lg" />
@@ -80,12 +78,12 @@ export function ChangelogPanel({ definitionId, onRestored }: ChangelogPanelProps
         }) => (
           <div
             key={v.version}
-            className="flex items-start justify-between gap-4 rounded-lg border border-[var(--border-color)] bg-[var(--surface,#161920)] p-4"
+            className="flex items-start justify-between gap-4 rounded-lg border border-[var(--border-color)] bg-[var(--surface,#161920)] p-4 transition-colors duration-150 hover:border-white/20"
           >
             <button
               type="button"
               onClick={() => setDiffVersion(v.version)}
-              className="flex flex-1 gap-3 text-left transition-opacity hover:opacity-80"
+              className="group flex flex-1 gap-3 text-left"
             >
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="flex items-center justify-center bg-[var(--accent)]/15 text-[10px] font-semibold leading-none text-[var(--accent)]">
@@ -102,7 +100,10 @@ export function ChangelogPanel({ definitionId, onRestored }: ChangelogPanelProps
                 )}
                 <p className="mt-1 text-xs text-[var(--fg-muted)]">
                   {v.changedBy?.name} ·{" "}
-                  {formatDistanceToNow(new Date(v.createdAt), { addSuffix: true })} · view changes
+                  {formatDistanceToNow(new Date(v.createdAt), { addSuffix: true })} ·{" "}
+                  <span className="text-[var(--fg-muted)] transition-colors group-hover:text-[var(--accent)]">
+                    view changes
+                  </span>
                 </p>
               </div>
             </button>

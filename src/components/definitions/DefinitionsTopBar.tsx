@@ -15,6 +15,13 @@ function useDefinitionId() {
   return pathname.match(/\/app\/definitions\/([^/]+)/)?.[1] ?? null;
 }
 
+const STATUS_META: Record<string, { label: string; color: string }> = {
+  PUBLISHED: { label: "Published", color: "var(--accent)" },
+  PENDING_REVIEW: { label: "In review", color: "#fbbf24" },
+  DRAFT: { label: "Draft", color: "#8b93a1" },
+  DEPRECATED: { label: "Deprecated", color: "#f87171" },
+};
+
 export function DefinitionsTopBar() {
   const definitionId = useDefinitionId();
   const qc = useQueryClient();
@@ -71,10 +78,23 @@ export function DefinitionsTopBar() {
 
       {definition && (
         <div className="flex shrink-0 items-center gap-2">
-          <span className="hidden items-center gap-1.5 rounded-full border border-[var(--border-color)] bg-white/5 px-2.5 py-1 text-xs text-[var(--fg-muted)] sm:flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
-            v{definition.currentVersion} — Current
-          </span>
+          {(() => {
+            const meta = STATUS_META[definition.status] ?? STATUS_META.DRAFT;
+            return (
+              <span
+                className="hidden items-center gap-1.5 rounded-full border border-[var(--border-color)] bg-white/5 px-2.5 py-1 text-xs text-[var(--fg-muted)] sm:flex"
+                title={`Version ${definition.currentVersion} · ${meta.label}`}
+              >
+                <span
+                  className="lg-pulse-dot h-1.5 w-1.5 rounded-full"
+                  style={{ background: meta.color }}
+                />
+                v{definition.currentVersion}
+                <span className="text-[var(--border-color)]">·</span>
+                <span style={{ color: meta.color }}>{meta.label}</span>
+              </span>
+            );
+          })()}
           <Button
             variant="ghost"
             size="sm"

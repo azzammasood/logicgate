@@ -48,8 +48,12 @@ export async function PATCH(request: Request, { params }: Params) {
       return apiResponse(null, { error: "Not found", status: 404 });
     }
 
+    // Note: don't require a WorkspaceMember row up front — canEdit() already
+    // grants ADMINs regardless of membership. Gating on `!member` first would
+    // 403 an admin editing a workspace they haven't joined, silently dropping
+    // autosaves (e.g. the source table never persists → pseudocode "not set").
     const member = await getWorkspaceMember(user.id, existing.workspaceId);
-    if (!member || !canEdit(user, existing, member)) {
+    if (!canEdit(user, existing, member)) {
       return apiResponse(null, { error: "Forbidden", status: 403 });
     }
 
@@ -66,11 +70,12 @@ export async function PATCH(request: Request, { params }: Params) {
 
     // Edits are saved to the working draft only. Versions are created
     // explicitly on publish (see /publish), like a git commit.
-    const { changeDescription: _ignored, ...data } = parsed.data;
+    const { changeDescription: _ignored, joins, ...rest } = parsed.data;
     void _ignored;
     const updated = await prisma.definition.update({
       where: { id },
-      data,
+      // Store joins as an array (never JSON null, which Prisma rejects for Json?).
+      data: { ...rest, ...(joins !== undefined ? { joins: joins ?? [] } : {}) },
       include: definitionInclude,
     });
 

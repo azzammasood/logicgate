@@ -1,26 +1,18 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import { Navbar } from "@/components/marketing/Navbar";
 import { Footer } from "@/components/marketing/Footer";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
 import "./globals-marketing.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
+// Terminal-style typeface used across the whole landing page — body, headings,
+// and code all share JetBrains Mono for a cohesive monospace/terminal look.
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "700", "800"],
   variable: "--font-jetbrains",
   display: "swap",
 });
-
-const FONTSHARE_SATOSHI =
-  "https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap";
 
 export const metadata: Metadata = {
   title: {
@@ -36,10 +28,8 @@ export default function MarketingLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <ScrollReveal>
-      <link rel="preconnect" href="https://api.fontshare.com" />
-      <link rel="stylesheet" href={FONTSHARE_SATOSHI} />
       <div
-        className={`marketing-root ${inter.variable} ${jetbrainsMono.variable} ${inter.className}`}
+        className={`marketing-root ${jetbrainsMono.variable} ${jetbrainsMono.className}`}
       >
         <div className="grid-overlay" aria-hidden="true" />
         <div className="marketing-shell">

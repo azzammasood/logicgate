@@ -190,7 +190,7 @@ export default function AccountabilityPage() {
             <h2
               style={{
                 margin: 0,
-                fontFamily: "Satoshi, sans-serif",
+                fontFamily: 'var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace',
                 fontWeight: 700,
                 fontSize: 16,
                 color: "#eef0f6",
@@ -221,7 +221,7 @@ export default function AccountabilityPage() {
             <h2
               style={{
                 margin: 0,
-                fontFamily: "Satoshi, sans-serif",
+                fontFamily: 'var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace',
                 fontWeight: 800,
                 fontSize: "clamp(28px, 3vw, 40px)",
                 letterSpacing: "-1.5px",
@@ -271,7 +271,7 @@ export default function AccountabilityPage() {
                   <h3
                     style={{
                       margin: "2px 0 8px",
-                      fontFamily: "Satoshi, sans-serif",
+                      fontFamily: 'var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace',
                       fontWeight: 700,
                       fontSize: 14,
                       color: "#eef0f6",

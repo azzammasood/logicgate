@@ -4,13 +4,10 @@ import { persist } from "zustand/middleware";
 export type ThemePreset =
   | "logicgate"
   | "abyss"
-  | "dracula"
-  | "monokai"
-  | "gruvbox-dark"
   | "gruvbox-light"
   | "mono"
-  | "aubergine"
-  | "lagoon";
+  | "mono-light"
+  | "aubergine";
 
 export type ThemeDef = {
   label: string;
@@ -34,7 +31,7 @@ export const PRESETS: Record<ThemePreset, ThemeDef> = {
     border: "rgba(255,255,255,0.10)",
   },
   abyss: {
-    label: "Abyss",
+    label: "Null Void",
     accent: "#38bdf8",
     background: "#06080f",
     surface: "#0d1320",
@@ -42,35 +39,8 @@ export const PRESETS: Record<ThemePreset, ThemeDef> = {
     fgMuted: "#8595ad",
     border: "rgba(120,160,220,0.14)",
   },
-  dracula: {
-    label: "Dracula",
-    accent: "#bd93f9",
-    background: "#282a36",
-    surface: "#343746",
-    fg: "#f8f8f2",
-    fgMuted: "#a6accd",
-    border: "rgba(255,255,255,0.10)",
-  },
-  monokai: {
-    label: "Monokai",
-    accent: "#a6e22e",
-    background: "#1e1f1c",
-    surface: "#2a2c26",
-    fg: "#f8f8f2",
-    fgMuted: "#b3b5ad",
-    border: "rgba(255,255,255,0.10)",
-  },
-  "gruvbox-dark": {
-    label: "Gruvbox Dark",
-    accent: "#fabd2f",
-    background: "#1d2021",
-    surface: "#282828",
-    fg: "#ebdbb2",
-    fgMuted: "#a89984",
-    border: "rgba(235,219,178,0.14)",
-  },
   "gruvbox-light": {
-    label: "Gruvbox Light",
+    label: "Whiteboard",
     accent: "#b57614",
     background: "#fbf1c7",
     surface: "#f2e5bc",
@@ -80,30 +50,33 @@ export const PRESETS: Record<ThemePreset, ThemeDef> = {
     light: true,
   },
   mono: {
-    label: "Mono",
-    accent: "#d4d4d8",
-    background: "#0c0c0d",
+    label: "Terminal",
+    // shadcn "Mono" palette — neutral zinc greys with a near-white accent.
+    accent: "#e4e4e7",
+    background: "#09090b",
     surface: "#18181b",
-    fg: "#e4e4e7",
-    fgMuted: "#9b9ba3",
+    fg: "#fafafa",
+    fgMuted: "#a1a1aa",
     border: "rgba(255,255,255,0.10)",
   },
+  "mono-light": {
+    label: "Notebook",
+    // shadcn "Mono" light — neutral greys on white with a near-black accent.
+    accent: "#18181b",
+    background: "#ffffff",
+    surface: "#f4f4f5",
+    fg: "#09090b",
+    fgMuted: "#71717a",
+    border: "rgba(0,0,0,0.10)",
+    light: true,
+  },
   aubergine: {
-    label: "Aubergine",
+    label: "Syntax",
     accent: "#c084fc",
     background: "#120d18",
     surface: "#1e1528",
     fg: "#ede4f7",
     fgMuted: "#a594b8",
-    border: "rgba(255,255,255,0.10)",
-  },
-  lagoon: {
-    label: "Lagoon",
-    accent: "#22d3ee",
-    background: "#0a1218",
-    surface: "#0f1a22",
-    fg: "#d6eef5",
-    fgMuted: "#88a3ad",
     border: "rgba(255,255,255,0.10)",
   },
 };
@@ -132,7 +105,7 @@ export const FONTS: Record<FontId, { label: string; stack: string }> = {
   trebuchet: { label: "Trebuchet MS", stack: "'Trebuchet MS', Helvetica, sans-serif" },
   courier: { label: "Courier New", stack: "'Courier New', Courier, monospace" },
   mono: { label: "DM Mono", stack: "var(--font-dm-mono), ui-monospace, monospace" },
-  syne: { label: "Syne", stack: "var(--font-syne), system-ui, sans-serif" },
+  syne: { label: "JetBrains Mono", stack: "var(--font-syne), ui-monospace, monospace" },
 };
 
 export type LanguageId =
@@ -182,6 +155,14 @@ export const useAppearanceStore = create<AppearanceState>()(
     { name: "logicgate-appearance" }
   )
 );
+
+/** Briefly enables smooth transitions on <html> while an appearance change applies. */
+export function flashThemeTransition() {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  root.classList.add("theme-transition");
+  window.setTimeout(() => root.classList.remove("theme-transition"), 380);
+}
 
 export function applyAppearanceToDocument(
   themePreset: ThemePreset,

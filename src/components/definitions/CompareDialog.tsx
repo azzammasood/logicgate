@@ -61,7 +61,7 @@ export function CompareDialog({
   onOpenChange: (open: boolean) => void;
   definitionId: string;
 }) {
-  const { data: versions = [] } = useQuery({
+  const { data: versions = [], isLoading: versionsLoading } = useQuery({
     queryKey: ["versions", definitionId],
     queryFn: async () => {
       const res = await fetch(`/api/definitions/${definitionId}/versions`);
@@ -81,16 +81,18 @@ export function CompareDialog({
     }
   }, [versions, toV]);
 
-  const { data: fromSnap } = useQuery({
+  const { data: fromSnap, isFetching: fromFetching } = useQuery({
     queryKey: ["version-snapshot", definitionId, fromV],
     queryFn: () => fetchSnapshot(definitionId, fromV!),
     enabled: !!definitionId && fromV !== null && open,
   });
-  const { data: toSnap } = useQuery({
+  const { data: toSnap, isFetching: toFetching } = useQuery({
     queryKey: ["version-snapshot", definitionId, toV],
     queryFn: () => fetchSnapshot(definitionId, toV!),
     enabled: !!definitionId && toV !== null && open,
   });
+
+  const loading = versionsLoading || fromFetching || toFetching;
 
   const conditionRows = useMemo(() => {
     const a = (fromSnap?.conditions ?? []).map(condText);
@@ -134,51 +136,111 @@ export function CompareDialog({
           </Select>
         </div>
 
-        <div className="mt-2 space-y-1.5">
-          {FIELDS.map((f) => {
-            const a = val(fromSnap, f.key);
-            const b = val(toSnap, f.key);
-            const changed = a !== b;
-            return (
-              <div
-                key={f.key}
-                className={cn(
-                  "grid grid-cols-[140px_1fr_1fr] items-center gap-2 rounded-md px-2 py-1.5 text-xs",
-                  changed ? "bg-amber-400/5" : ""
-                )}
-              >
-                <span className="text-[var(--fg-muted)]">{f.label}</span>
-                <span className={cn("truncate", changed && "text-red-300 line-through")}>{a}</span>
-                <span className={cn("truncate", changed && "text-[var(--accent)]")}>{b}</span>
-              </div>
-            );
-          })}
-
-          <div className="grid grid-cols-[140px_1fr_1fr] gap-2 px-2 pt-3 text-[10px] uppercase tracking-wide text-[var(--fg-muted)]">
-            <span>Conditions</span>
-            <span>v{fromV}</span>
-            <span>v{toV}</span>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-16">
+            <span className="h-7 w-7 animate-spin rounded-full border-2 border-[var(--accent)]/30 border-t-[var(--accent)]" />
+            <p className="text-xs text-[var(--fg-muted)]">Loading version snapshots…</p>
           </div>
-          {conditionRows.length === 0 && (
-            <p className="px-2 text-xs text-[var(--fg-muted)]">No conditions.</p>
-          )}
-          {conditionRows.map((r, i) => {
-            const changed = r.from !== r.to;
+        ) : (
+        <div className="mt-1 space-y-3 [animation:app-page-in_0.25s_ease-out]">
+          {(() => {
+            const fieldChanges = FIELDS.filter((f) => val(fromSnap, f.key) !== val(toSnap, f.key)).length;
+            const condChanges = conditionRows.filter((r) => r.from !== r.to).length;
+            const total = fieldChanges + condChanges;
             return (
-              <div
-                key={i}
-                className={cn(
-                  "grid grid-cols-[140px_1fr_1fr] items-center gap-2 rounded-md px-2 py-1.5 text-xs",
-                  changed ? "bg-amber-400/5" : ""
-                )}
-              >
-                <span className="text-[var(--fg-muted)]">#{i + 1}</span>
-                <span className={cn("truncate font-mono", changed && "text-red-300")}>{r.from}</span>
-                <span className={cn("truncate font-mono", changed && "text-[var(--accent)]")}>{r.to}</span>
+              <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-medium",
+                    total === 0 ? "bg-white/5 text-white/50" : "bg-amber-400/10 text-amber-300"
+                  )}
+                >
+                  {total === 0 ? "Identical" : `${total} difference${total === 1 ? "" : "s"}`}
+                </span>
+                <span className="text-white/35">
+                  v{fromV} → v{toV}
+                </span>
               </div>
             );
-          })}
+          })()}
+
+          <div>
+            <div className="grid grid-cols-[130px_1fr_1fr] gap-2 px-2 pb-1 text-[10px] uppercase tracking-wide text-[var(--fg-muted)]">
+              <span>Field</span>
+              <span>v{fromV}</span>
+              <span>v{toV}</span>
+            </div>
+            <div className="space-y-1">
+              {FIELDS.map((f) => {
+                const a = val(fromSnap, f.key);
+                const b = val(toSnap, f.key);
+                const changed = a !== b;
+                return (
+                  <div
+                    key={f.key}
+                    className={cn(
+                      "grid grid-cols-[130px_1fr_1fr] items-center gap-2 rounded-md px-2 py-1.5 text-xs",
+                      changed ? "border-l-2 border-amber-400/60 bg-amber-400/[0.06]" : "opacity-70"
+                    )}
+                  >
+                    <span className="text-[var(--fg-muted)]">{f.label}</span>
+                    <span
+                      className={cn(
+                        "truncate",
+                        changed
+                          ? "w-fit max-w-full rounded bg-red-500/10 px-1.5 py-0.5 text-red-300 line-through"
+                          : "text-white/70"
+                      )}
+                    >
+                      {a}
+                    </span>
+                    <span
+                      className={cn(
+                        "truncate",
+                        changed
+                          ? "w-fit max-w-full rounded bg-[var(--accent)]/10 px-1.5 py-0.5 text-[var(--accent)]"
+                          : "text-white/70"
+                      )}
+                    >
+                      {b}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <div className="grid grid-cols-[130px_1fr_1fr] gap-2 px-2 pb-1 text-[10px] uppercase tracking-wide text-[var(--fg-muted)]">
+              <span>Conditions</span>
+              <span>v{fromV}</span>
+              <span>v{toV}</span>
+            </div>
+            {conditionRows.length === 0 ? (
+              <p className="px-2 text-xs text-[var(--fg-muted)]">No conditions.</p>
+            ) : (
+              <div className="space-y-1">
+                {conditionRows.map((r, i) => {
+                  const changed = r.from !== r.to;
+                  return (
+                    <div
+                      key={i}
+                      className={cn(
+                        "grid grid-cols-[130px_1fr_1fr] items-center gap-2 rounded-md px-2 py-1.5 text-xs",
+                        changed ? "border-l-2 border-amber-400/60 bg-amber-400/[0.06]" : "opacity-70"
+                      )}
+                    >
+                      <span className="text-[var(--fg-muted)]">#{i + 1}</span>
+                      <span className={cn("truncate font-mono", changed && "text-red-300 line-through")}>{r.from}</span>
+                      <span className={cn("truncate font-mono", changed && "text-[var(--accent)]")}>{r.to}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
+        )}
       </DialogContent>
     </Dialog>
   );

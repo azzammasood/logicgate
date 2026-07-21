@@ -162,7 +162,7 @@ export function ChangeRequestDetailModal({
                 Reject
               </Button>
               <Button
-                className="bg-[#4ade80] text-black"
+                className="bg-[var(--accent)] text-black"
                 disabled={reviewMutation.isPending}
                 onClick={() => reviewMutation.mutate("APPROVED")}
               >

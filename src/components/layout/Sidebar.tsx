@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
+  LayoutDashboard,
   FileText,
   GitPullRequest,
   Code2,
@@ -34,6 +35,7 @@ const navSections: { title: string; items: NavItem[] }[] = [
   {
     title: "Workspace",
     items: [
+      { href: "/app/dashboard", label: "Overview", icon: LayoutDashboard },
       { href: "/app/definitions", label: "Definitions", icon: FileText, badgeKey: "definitions", badgeTone: "muted" },
       { href: "/app/changes", label: "Reviews", icon: GitPullRequest, badgeKey: "reviews", badgeTone: "amber" },
       { href: "/app/pseudocodes", label: "Pseudocodes", icon: Code2 },
@@ -125,10 +127,12 @@ function NavContent({
         <LogoBadge animateOnHover href="/app/definitions" />
         {!collapsed && (
           <div className="min-w-0 flex-1">
-            <p className="truncate font-[family-name:var(--font-syne)] text-sm font-bold leading-tight text-white">
+            <p className="truncate font-[family-name:var(--app-font)] text-sm font-bold leading-tight text-white">
               LogicGate
             </p>
-            <p className="truncate text-[10px] text-white/40">Data Definition Layer</p>
+            <p className="text-[10px] leading-snug text-white/40">
+              Data Definition Layer
+            </p>
           </div>
         )}
         <Button
@@ -137,6 +141,7 @@ function NavContent({
           className="h-7 w-7 shrink-0 text-white/40 hover:text-white"
           onClick={onToggleCollapse}
           title="Toggle sidebar"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <PanelLeft className="h-4 w-4" />
         </Button>
@@ -201,7 +206,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "hidden h-screen shrink-0 flex-col overflow-x-hidden border-r border-white/10 bg-[var(--surface,#161920)] md:flex",
+        "hidden h-screen shrink-0 flex-col overflow-x-hidden border-r border-white/10 bg-[var(--surface,#161920)] transition-[width] duration-300 ease-in-out md:flex",
         sidebarOpen ? "w-60" : "w-[4.5rem]"
       )}
     >

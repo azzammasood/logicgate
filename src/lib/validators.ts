@@ -21,6 +21,16 @@ export const updateDefinitionSchema = z.object({
   sourceValueField: z.string().optional().nullable(),
   sourceDateField: z.string().optional().nullable(),
   currency: z.string().optional().nullable(),
+  joins: z
+    .array(
+      z.object({
+        table: z.string(),
+        type: z.enum(["INNER", "LEFT", "RIGHT"]).default("INNER"),
+        on: z.string(),
+      })
+    )
+    .optional()
+    .nullable(),
   aggregationFn: z
     .enum(["SUM", "COUNT", "AVERAGE", "DISTINCT_COUNT", "MIN", "MAX"])
     .optional()
