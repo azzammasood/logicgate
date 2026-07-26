@@ -124,16 +124,16 @@ export function DefinitionsListPanel() {
 
   return (
     <aside className="relative flex w-[280px] shrink-0 flex-col border-r border-white/10 bg-[var(--surface,#161920)]">
-      <div className="border-b border-white/10 p-4">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <h2 className="text-sm font-medium text-white/70">All Definitions</h2>
+      <div className="border-b border-white/10 px-4 pb-3 pt-3.5">
+        <div className="mb-2.5 flex items-center justify-between gap-2">
+          <h2 className="text-[11px] text-[var(--text2)]">All Definitions</h2>
           <CreateDefinitionDialog variant="compact" />
         </div>
         <Input
-          placeholder="Search name, type, or group…"
+          placeholder="Search definitions..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="h-8 w-full bg-[var(--background,#0d0f14)] text-xs"
+          className="h-8 w-full bg-[var(--background,#0d0f14)] text-[11px]"
         />
         <div className="mt-2 flex items-center gap-1">
           {([
@@ -194,44 +194,55 @@ export function DefinitionsListPanel() {
   );
 }
 
+// Type tag colors from the original design mockup (metric/rule/filter/flag).
+const TYPE_TAG: Record<string, string> = {
+  METRIC: "bg-[var(--blue-dim)] text-[var(--blue)]",
+  RULE: "bg-[var(--purple-dim)] text-[var(--purple)]",
+  FILTER: "bg-[var(--amber-dim)] text-[var(--amber)]",
+  FLAG: "bg-[var(--red-dim)] text-[var(--red)]",
+};
+
 function RowLink({ d, active }: { d: DefinitionRow; active: boolean }) {
   const recent = isAfter(new Date(d.updatedAt), subHours(new Date(), 24));
   return (
     <Link
       href={`/app/definitions/${d.id}`}
       className={cn(
-        "relative block min-w-0 flex-1 rounded-md px-2 py-2 transition-all duration-150",
+        "block min-w-0 flex-1 border-l-2 px-2.5 py-2 transition-all duration-150",
         active
-          ? "bg-[var(--accent,#4ade80)]/15 ring-1 ring-[var(--accent,#4ade80)]/30"
-          : "hover:bg-white/5"
+          ? "border-l-[var(--accent,#4ade80)] bg-[var(--accent-dim)]"
+          : "border-l-transparent hover:bg-[var(--surface2)]"
       )}
     >
-      {active && (
-        <span className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 rounded-r bg-[var(--accent,#4ade80)]" />
-      )}
       <span
         className={cn(
-          "line-clamp-2 text-sm leading-snug",
+          "line-clamp-2 text-xs leading-snug",
           active ? "text-white" : "text-white/85"
         )}
       >
         {d.name}
       </span>
-      <div className="mt-1 flex items-center gap-1.5 text-[10px] text-white/35">
-        {recent && (
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-400" title="Updated in last 24h" />
-        )}
-        <span className="capitalize">{d.type.toLowerCase()}</span>
-        <span>·</span>
-        <span className="whitespace-nowrap">
-          {formatDistanceToNow(new Date(d.updatedAt), { addSuffix: false })}
+      <div className="mt-1 flex items-center gap-2">
+        <span
+          className={cn(
+            "rounded px-1.5 py-0.5 text-[9px] lowercase",
+            TYPE_TAG[d.type] ?? "bg-white/5 text-white/50"
+          )}
+        >
+          {d.type.toLowerCase()}
         </span>
         {d.status === "DEPRECATED" && (
-          <>
-            <span>·</span>
-            <span>deprecated</span>
-          </>
+          <span className="text-[9px] text-[var(--red)]">deprecated</span>
         )}
+        <span className="ml-auto flex items-center gap-1 whitespace-nowrap text-[10px] text-[var(--text3)]">
+          {recent && (
+            <span
+              className="inline-block h-[5px] w-[5px] rounded-full bg-[var(--amber)]"
+              title="Updated in last 24h"
+            />
+          )}
+          {formatDistanceToNow(new Date(d.updatedAt), { addSuffix: false })}
+        </span>
       </div>
     </Link>
   );
@@ -290,7 +301,7 @@ function GroupList({
   };
 
   const header = (
-    <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-white/35">
+    <p className="mb-1 px-1 text-[9px] uppercase tracking-[1.5px] text-white/35">
       {groupName}
     </p>
   );

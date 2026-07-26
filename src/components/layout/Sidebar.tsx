@@ -117,20 +117,20 @@ function NavContent({
   };
 
   return (
-    <nav className="flex flex-1 flex-col gap-5 overflow-x-hidden overflow-y-auto p-3">
+    <nav className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
       <div
         className={cn(
-          "flex shrink-0 items-center gap-2",
-          collapsed ? "flex-col justify-center px-0" : "px-1"
+          "flex shrink-0 items-center gap-2.5 border-b border-white/10 px-[18px] pb-4 pt-5",
+          collapsed && "flex-col justify-center px-0"
         )}
       >
         <LogoBadge animateOnHover href="/app/definitions" />
         {!collapsed && (
           <div className="min-w-0 flex-1">
-            <p className="truncate font-[family-name:var(--app-font)] text-sm font-bold leading-tight text-white">
+            <p className="truncate font-[family-name:var(--font-display)] text-base font-extrabold leading-tight tracking-[-0.3px] text-white">
               LogicGate
             </p>
-            <p className="text-[10px] leading-snug text-white/40">
+            <p className="text-[10px] leading-snug tracking-[0.5px] text-white/35">
               Data Definition Layer
             </p>
           </div>
@@ -148,9 +148,9 @@ function NavContent({
       </div>
 
       {navSections.map((section) => (
-        <div key={section.title} className="space-y-1">
+        <div key={section.title} className="border-b border-white/10 py-2">
           {!collapsed && (
-            <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-white/30">
+            <p className="px-[18px] pb-1 pt-2 text-[9px] uppercase tracking-[1.5px] text-white/30">
               {section.title}
             </p>
           )}
@@ -165,26 +165,25 @@ function NavContent({
                 href={item.href}
                 title={collapsed ? item.label : undefined}
                 className={cn(
-                  "relative flex items-center gap-3 rounded-md py-2 text-sm transition-colors",
+                  "flex items-center gap-2.5 border-l-2 py-[7px] text-xs transition-colors",
                   active
-                    ? "bg-[var(--accent,#4ade80)]/10 text-[var(--accent,#4ade80)]"
-                    : "text-white/60 hover:bg-white/5 hover:text-white",
-                  collapsed ? "justify-center px-2" : "px-3",
-                  active && !collapsed && "pl-3"
+                    ? "border-l-[var(--accent,#4ade80)] bg-[var(--accent-dim)] text-[var(--accent,#4ade80)]"
+                    : "border-l-transparent text-white/60 hover:bg-[var(--accent-dim2)] hover:text-white",
+                  collapsed ? "justify-center px-2" : "px-[18px]"
                 )}
               >
-                {active && !collapsed && (
-                  <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r bg-[var(--accent,#4ade80)]" />
-                )}
-                <Icon className="h-4 w-4 shrink-0" />
+                {/* Icons only in the collapsed rail; the expanded menu is text-only. */}
+                {collapsed && <Icon className="h-3.5 w-3.5 shrink-0" />}
                 {!collapsed && <span className="flex-1">{item.label}</span>}
                 {!collapsed && count > 0 && (
                   <span
                     className={cn(
-                      "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
-                      item.badgeTone === "amber"
-                        ? "bg-amber-500/20 text-amber-400"
-                        : "bg-white/10 text-white/50"
+                      "rounded-full px-[6px] py-px text-[10px]",
+                      // Active row badge is green (mockup .badge.new); the rest
+                      // are quiet grey pills (mockup .badge).
+                      active
+                        ? "bg-[var(--accent-dim)] text-[var(--accent)]"
+                        : "bg-[var(--surface3)] text-[var(--text3)]"
                     )}
                   >
                     {count}

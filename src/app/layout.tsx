@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Mono, JetBrains_Mono } from "next/font/google";
+import { DM_Mono, Syne } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AppearanceProvider } from "@/components/providers/AppearanceProvider";
@@ -14,13 +14,13 @@ const dmMono = DM_Mono({
   preload: false,
 });
 
-// Display font for the logo, page titles and headings. JetBrains Mono renders
-// cleanly (Syne's descenders — e.g. lowercase "g" — were being clipped). Kept
-// on the --font-syne variable so all existing heading usages pick it up.
-const syne = JetBrains_Mono({
+// Display font for the logo, page titles and headings — Syne, matching the
+// original UI design. Descender clipping is avoided by giving titles enough
+// line-height where they render (avoid leading-none on Syne text).
+const syne = Syne({
   variable: "--font-syne",
   subsets: ["latin"],
-  weight: ["400", "500", "700", "800"],
+  weight: ["400", "600", "700", "800"],
   display: "swap",
   preload: false,
 });

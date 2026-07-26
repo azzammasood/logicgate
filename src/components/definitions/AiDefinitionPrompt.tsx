@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Sparkles, Loader2, ArrowRight } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { useAiStore } from "@/stores/ai";
 import { useUiStore } from "@/stores/ui";
+import { SectionInfoTip } from "@/components/definitions/sections/SectionInfoTip";
 import { parseDefinition, type AiParseResult } from "@/lib/ai/parseDefinition";
 import { toast } from "sonner";
 
@@ -96,10 +97,11 @@ export function AiDefinitionPrompt({
   return (
     <section className="rounded-xl border border-[var(--accent)]/25 bg-gradient-to-br from-[var(--accent)]/[0.06] to-transparent p-4">
       <div className="mb-2.5 flex items-center gap-2">
-        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent)]/15 text-[var(--accent)]">
-          <Sparkles className="h-3.5 w-3.5" />
-        </span>
         <h3 className="text-sm font-medium text-white/90">Describe it in plain English</h3>
+        <SectionInfoTip
+          description="Turn a plain-English description into filter conditions with AI. Optional — everything here can also be built by hand in the sections below."
+          example="Active users logged in within the last 30 days and are not on a trial plan."
+        />
         {!available && (
           <button
             type="button"

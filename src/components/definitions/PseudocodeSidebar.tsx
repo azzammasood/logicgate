@@ -112,7 +112,7 @@ export function PseudocodeSidebar() {
 
   if (!definitionId) {
     return (
-      <aside className="hidden w-[380px] shrink-0 border-l border-[var(--border-color)] bg-[var(--surface,#161920)] xl:flex xl:flex-col">
+      <aside className="hidden w-[300px] shrink-0 border-l border-[var(--border-color)] bg-[var(--surface,#161920)] xl:flex xl:flex-col">
         <div className="flex flex-1 items-center justify-center p-6 text-center">
           <p className="text-xs text-[var(--fg-muted)]">
             Select a definition to view auto-compiled pseudocode.
@@ -123,10 +123,10 @@ export function PseudocodeSidebar() {
   }
 
   return (
-    <aside className="hidden w-[380px] shrink-0 flex-col overflow-y-auto border-l border-[var(--border-color)] bg-[var(--surface,#161920)] xl:flex">
-      <div className="border-b border-[var(--border-color)] px-4 py-3">
-        <h3 className="text-sm font-medium text-[var(--fg)]">Auto-compiled Pseudocode</h3>
-        <p className="text-[10px] text-[var(--fg-muted)]">Updates on every save</p>
+    <aside className="hidden w-[300px] shrink-0 flex-col overflow-y-auto border-l border-[var(--border-color)] bg-[var(--surface,#161920)] xl:flex">
+      <div className="border-b border-[var(--border-color)] px-4 py-3.5">
+        <h3 className="text-[11px] font-medium text-[var(--fg)]">Auto-compiled Pseudocode</h3>
+        <p className="text-[10px] text-[var(--text3)]">Updates on every save</p>
       </div>
 
       <div className="space-y-4 p-4">
@@ -180,38 +180,36 @@ export function PseudocodeSidebar() {
         </div>
 
         <div>
-          <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
-            Version history
-          </p>
-          <ul className="space-y-3">
+          <p className="mb-1 text-[10px] text-[var(--text3)]">Version history</p>
+          <ul>
             {versions.slice(0, 8).map((v, i) => (
               <li
                 key={v.version}
-                className="rounded-lg border border-[var(--border-color)] bg-[var(--background,#0d0f14)]/60 p-2.5"
+                className="border-b border-[var(--border-color)] py-2.5 last:border-b-0"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span
                     className={
                       i === 0
-                        ? "rounded bg-[var(--accent)]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[var(--accent)]"
-                        : "rounded bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold text-[var(--fg-muted)]"
+                        ? "rounded bg-[var(--accent-dim)] px-1.5 py-px text-[10px] text-[var(--accent)]"
+                        : "rounded bg-[var(--surface3)] px-1.5 py-px text-[10px] text-[var(--text3)]"
                     }
                   >
                     v{v.version}
                   </span>
-                  <span className="text-[10px] text-[var(--fg-muted)]">
+                  <span className="text-[10px] text-[var(--text3)]">
                     {formatDistanceToNow(new Date(v.createdAt), { addSuffix: true })}
                   </span>
                 </div>
-                <p className="mt-1.5 line-clamp-2 text-[11px] text-[var(--fg)]/85">
+                <p className="mt-1 line-clamp-2 text-[11px] text-[var(--text2)]">
                   {v.changeDescription ?? "Update"}
                 </p>
                 {v.changedBy?.name && (
-                  <div className="mt-1.5 flex items-center gap-1.5">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--accent)]/15 text-[8px] font-semibold text-[var(--accent)]">
+                  <div className="mt-1 flex items-center gap-1.5">
+                    <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--blue-dim)] text-[7px] font-semibold text-[var(--blue)]">
                       {v.changedBy.avatarInitials ?? v.changedBy.name.slice(0, 2).toUpperCase()}
                     </span>
-                    <span className="truncate text-[10px] text-[var(--fg-muted)]">
+                    <span className="truncate text-[10px] text-[var(--text3)]">
                       {v.changedBy.name}
                     </span>
                   </div>

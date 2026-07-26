@@ -18,7 +18,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Plus, Trash2, Filter } from "lucide-react";
+import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -73,10 +73,11 @@ const OPERATOR_LABELS: Record<string, string> = {
   STARTS_WITH: "starts with",
 };
 
+// Connector colors from the design mockup: IF blue, AND purple, OR amber.
 const connectorColor: Record<string, string> = {
-  IF: "bg-[var(--accent,#4ade80)]/15 text-[var(--accent,#4ade80)]",
-  AND: "bg-blue-500/15 text-blue-400",
-  OR: "bg-amber-500/15 text-amber-400",
+  IF: "bg-[var(--blue-dim)] text-[var(--blue)]",
+  AND: "bg-[var(--purple-dim)] text-[var(--purple)]",
+  OR: "bg-[var(--amber-dim)] text-[var(--amber)]",
 };
 
 const contentClass =
@@ -109,7 +110,7 @@ function SortableRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-[var(--background,#0d0f14)] px-2 py-2 transition-colors duration-150 hover:border-white/20",
+        "group flex flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-[var(--surface2)] px-2 py-2 transition-colors duration-150 hover:border-white/20",
         isDragging && "border-[var(--accent,#4ade80)]/40 opacity-70 shadow-lg shadow-black/30"
       )}
     >
@@ -144,7 +145,7 @@ function SortableRow({
         placeholder="field"
         value={row.field}
         onChange={(e) => onUpdate({ field: e.target.value })}
-        className="h-7 min-w-[110px] flex-1 rounded-md bg-cyan-500/10 text-xs text-cyan-300 placeholder:text-cyan-300/40"
+        className="h-7 min-w-[110px] flex-1 rounded-md bg-[var(--blue-dim)] text-[11px] text-[var(--blue)] placeholder:text-[var(--blue)]/40"
       />
 
       <Select value={row.operator} onValueChange={(v) => v && onUpdate({ operator: v })}>
@@ -165,7 +166,7 @@ function SortableRow({
           placeholder="value"
           value={row.value ?? ""}
           onChange={(e) => onUpdate({ value: e.target.value || null })}
-          className="h-7 min-w-[90px] flex-1 rounded-md bg-amber-500/10 text-xs text-amber-300 placeholder:text-amber-300/40"
+          className="h-7 min-w-[90px] flex-1 rounded-md bg-[var(--amber-dim)] text-[11px] text-[var(--amber)] placeholder:text-[var(--amber)]/40"
         />
       )}
 
@@ -237,7 +238,7 @@ export function ConditionsSection({ conditions, onChange, debounceMs = 800 }: Co
 
   return (
     <SectionCard
-      icon={Filter}
+      iconClassName="bg-[var(--amber-dim)]"
       title="Filter Logic"
       titleInfo={
         <SectionInfoTip
@@ -245,6 +246,7 @@ export function ConditionsSection({ conditions, onChange, debounceMs = 800 }: Co
           example="status is completed AND type not in refund, chargeback."
         />
       }
+      rightLabel={`${local.length} condition${local.length === 1 ? "" : "s"}`}
     >
       <div className="space-y-2">
         {local.length === 0 && (
@@ -270,7 +272,7 @@ export function ConditionsSection({ conditions, onChange, debounceMs = 800 }: Co
         <button
           type="button"
           onClick={addRow}
-          className="flex w-full items-center gap-2 rounded-lg border border-dashed border-white/10 px-3 py-2 text-xs text-white/40 transition-colors hover:border-[var(--accent,#4ade80)]/40 hover:text-[var(--accent,#4ade80)]"
+          className="flex w-full items-center gap-2 rounded-lg border border-dashed border-[var(--border2)] px-3 py-2 text-[11px] text-white/40 transition-colors hover:border-[var(--accent,#4ade80)] hover:bg-[var(--accent-dim2)] hover:text-[var(--accent,#4ade80)]"
         >
           <Plus className="h-3.5 w-3.5" />
           Add condition

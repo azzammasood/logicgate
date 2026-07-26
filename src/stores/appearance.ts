@@ -104,8 +104,8 @@ export const FONTS: Record<FontId, { label: string; stack: string }> = {
   tahoma: { label: "Tahoma", stack: "Tahoma, Geneva, sans-serif" },
   trebuchet: { label: "Trebuchet MS", stack: "'Trebuchet MS', Helvetica, sans-serif" },
   courier: { label: "Courier New", stack: "'Courier New', Courier, monospace" },
-  mono: { label: "DM Mono", stack: "var(--font-dm-mono), ui-monospace, monospace" },
-  syne: { label: "JetBrains Mono", stack: "var(--font-syne), ui-monospace, monospace" },
+  mono: { label: "DM Mono", stack: "var(--font-dm-mono), 'Fira Code', ui-monospace, monospace" },
+  syne: { label: "Syne", stack: "var(--font-syne), sans-serif" },
 };
 
 export type LanguageId =
@@ -146,13 +146,23 @@ export const useAppearanceStore = create<AppearanceState>()(
   persist(
     (set) => ({
       themePreset: "logicgate",
-      font: "arial",
+      font: "mono",
       language: "en",
       setThemePreset: (themePreset) => set({ themePreset }),
       setFont: (font) => set({ font }),
       setLanguage: (language) => set({ language }),
     }),
-    { name: "logicgate-appearance" }
+    {
+      name: "logicgate-appearance",
+      version: 1,
+      // v1: DM Mono became the default app font (original design mockup).
+      // Move users still on the old Arial default over; explicit picks stay.
+      migrate: (state, version) => {
+        const s = state as AppearanceState;
+        if (version < 1 && s.font === "arial") s.font = "mono";
+        return s;
+      },
+    }
   )
 );
 

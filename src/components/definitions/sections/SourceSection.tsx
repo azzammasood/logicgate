@@ -1,6 +1,6 @@
 "use client";
 
-import { Database, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,7 +47,7 @@ export function SourceSection({ values, sourceTables = [], onChange }: SourceSec
 
   return (
     <SectionCard
-      icon={Database}
+      iconClassName="bg-[var(--blue-dim)]"
       title="Source Fields"
       titleInfo={
         <SectionInfoTip

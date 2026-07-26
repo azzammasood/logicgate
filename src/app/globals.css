@@ -44,8 +44,27 @@
   --surface: #161920;
   --accent: #4ade80;
   --border-color: rgba(255, 255, 255, 0.1);
-  --app-font: Arial, Helvetica, sans-serif;
+  --app-font: var(--font-dm-mono), "Fira Code", ui-monospace, monospace;
+  --font-display: var(--font-syne), sans-serif;
   --radius: 0.5rem;
+
+  /* Design-system tokens from the original UI mockup. The elevated surfaces
+     and dim tints derive from the themeable palette so presets stay correct. */
+  --surface2: color-mix(in srgb, var(--surface) 92%, var(--fg));
+  --surface3: color-mix(in srgb, var(--surface) 84%, var(--fg));
+  --border2: rgba(255, 255, 255, 0.14);
+  --accent-dim: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-dim2: color-mix(in srgb, var(--accent) 6%, transparent);
+  --blue: #60a5fa;
+  --blue-dim: rgba(96, 165, 250, 0.12);
+  --amber: #fbbf24;
+  --amber-dim: rgba(251, 191, 36, 0.12);
+  --red: #f87171;
+  --red-dim: rgba(248, 113, 113, 0.12);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167, 139, 250, 0.12);
+  --text2: var(--fg-muted);
+  --text3: color-mix(in srgb, var(--fg-muted) 62%, var(--background));
 }
 
 @layer base {
@@ -79,7 +98,6 @@
   /* Placeholder / default hint text: keep it faint and translucent. */
   input::placeholder, textarea::placeholder {
     opacity: 0.4;
-    font-style: italic;
   }
   /* Headings follow the chosen font unless explicitly set to the display font. */
   h1, h2, h3, h4, h5, h6 {
@@ -210,21 +228,18 @@
   scrollbar-color: color-mix(in srgb, var(--fg) 18%, transparent) transparent;
 }
 *::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 5px;
+  height: 5px;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--fg) 14%, transparent);
-  border: 3px solid transparent;
-  background-clip: content-box;
-  border-radius: 999px;
+  border-radius: 2px;
 }
 *::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--fg) 26%, transparent);
-  background-clip: content-box;
 }
 
 /* Text selection uses the brand accent */

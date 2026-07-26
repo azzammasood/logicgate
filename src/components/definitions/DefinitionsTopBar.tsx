@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, GitCompare } from "lucide-react";
+import { GitCompare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChangeRequestDialog } from "@/components/definitions/ChangeRequestDialog";
 import { CompareDialog } from "@/components/definitions/CompareDialog";
@@ -57,22 +57,16 @@ export function DefinitionsTopBar() {
     : null;
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-[var(--border-color)] bg-[var(--surface,#161920)]/80 px-5 backdrop-blur">
-      <nav className="flex min-w-0 items-center gap-1.5 text-sm">
-        <Link href="/app/definitions" className="text-[var(--fg-muted)] hover:text-[var(--fg)]">
+    <header className="flex h-[52px] shrink-0 items-center justify-between gap-3 border-b border-[var(--border-color)] bg-[#0a0c10] px-5">
+      <nav className="flex min-w-0 items-center gap-3 text-xs">
+        <Link href="/app/definitions" className="text-[var(--text3)] hover:text-[var(--fg)]">
           Definitions
         </Link>
         {definition?.group?.name && (
-          <>
-            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[var(--fg-muted)]" />
-            <span className="truncate text-[var(--fg-muted)]">{definition.group.name}</span>
-          </>
+          <span className="truncate font-medium text-[var(--fg)]">{definition.group.name}</span>
         )}
         {definition?.name && (
-          <>
-            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[var(--fg-muted)]" />
-            <span className="truncate font-medium text-[var(--accent)]">{definition.name}</span>
-          </>
+          <span className="truncate font-medium text-[var(--accent)]">{definition.name}</span>
         )}
       </nav>
 
@@ -82,39 +76,37 @@ export function DefinitionsTopBar() {
             const meta = STATUS_META[definition.status] ?? STATUS_META.DRAFT;
             return (
               <span
-                className="hidden items-center gap-1.5 rounded-full border border-[var(--border-color)] bg-white/5 px-2.5 py-1 text-xs text-[var(--fg-muted)] sm:flex"
+                className="hidden items-center gap-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--surface3)] px-2.5 py-[5px] text-[11px] text-[var(--text2)] sm:flex"
                 title={`Version ${definition.currentVersion} · ${meta.label}`}
               >
                 <span
                   className="lg-pulse-dot h-1.5 w-1.5 rounded-full"
                   style={{ background: meta.color }}
                 />
-                v{definition.currentVersion}
-                <span className="text-[var(--border-color)]">·</span>
-                <span style={{ color: meta.color }}>{meta.label}</span>
+                v{definition.currentVersion} — <span style={{ color: meta.color }}>{meta.label}</span>
               </span>
             );
           })()}
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="text-[var(--fg-muted)] hover:text-[var(--fg)]"
+            className="h-7 rounded-lg border-[var(--border2)] bg-transparent px-3.5 text-[11px] text-[var(--text2)] hover:bg-[var(--surface2)] hover:text-[var(--fg)]"
             onClick={() => setCompareOpen(true)}
           >
-            <GitCompare className="mr-1.5 h-3.5 w-3.5" />
+            <GitCompare className="mr-1 h-3.5 w-3.5" />
             Compare
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="border-amber-400/40 text-amber-300 hover:bg-amber-400/10 hover:text-amber-200"
+            className="h-7 rounded-lg border-amber-400/30 bg-[var(--amber-dim)] px-3.5 text-[11px] text-[var(--amber)] hover:bg-amber-400/20 hover:text-amber-200"
             onClick={() => setChangeReqOpen(true)}
           >
             Request Review
           </Button>
           <Button
             size="sm"
-            className="bg-[var(--accent)] text-black hover:opacity-90"
+            className="h-7 rounded-lg bg-[var(--accent)] px-3.5 text-[11px] font-medium text-[#0d1208] hover:opacity-90"
             onClick={() => setPublishOpen(true)}
           >
             Publish

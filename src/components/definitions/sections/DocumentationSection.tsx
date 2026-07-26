@@ -1,6 +1,5 @@
 "use client";
 
-import { FileText } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { SectionCard } from "@/components/definitions/sections/SectionShell";
 import { SectionInfoTip } from "@/components/definitions/sections/SectionInfoTip";
@@ -23,7 +22,6 @@ export function DocumentationSection({
 }: DocumentationSectionProps) {
   return (
     <SectionCard
-      icon={FileText}
       defaultCollapsed={defaultCollapsed}
       title="Documentation"
       titleInfo={

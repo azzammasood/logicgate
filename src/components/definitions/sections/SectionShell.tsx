@@ -15,7 +15,7 @@ export function SectionCard({
   className,
   defaultCollapsed = false,
 }: {
-  icon: LucideIcon;
+  icon?: LucideIcon;
   iconClassName?: string;
   title: string;
   titleInfo?: React.ReactNode;
@@ -30,11 +30,11 @@ export function SectionCard({
   return (
     <section
       className={cn(
-        "rounded-xl border border-white/10 bg-[var(--surface,#161920)]/60 transition-colors duration-200 hover:border-white/[0.14]",
+        "rounded-[12px] border border-white/10 bg-[var(--surface,#161920)] transition-colors duration-200 hover:border-white/[0.14]",
         className
       )}
     >
-      <header className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+      <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">
         <button
           type="button"
           onClick={() => setCollapsed((c) => !c)}
@@ -47,21 +47,21 @@ export function SectionCard({
               collapsed && "-rotate-90"
             )}
           />
-          <span
-            className={cn(
-              "flex h-7 w-7 items-center justify-center rounded-md",
-              // Default to a quiet, monochrome icon so a stack of sections reads
-              // as one calm surface rather than a row of rainbow badges.
-              iconClassName ?? "bg-white/[0.06] text-white/55"
-            )}
-          >
-            <Icon className="h-4 w-4" />
-          </span>
-          <h3 className="text-sm font-medium text-white/90">{title}</h3>
+          {(Icon || iconClassName) && (
+            <span
+              className={cn(
+                "flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-md",
+                iconClassName ?? "bg-white/[0.06] text-white/55"
+              )}
+            >
+              {Icon && <Icon className="h-3.5 w-3.5" />}
+            </span>
+          )}
+          <h3 className="text-xs font-medium text-white/90">{title}</h3>
         </button>
         <div className="flex items-center gap-2 pl-2">
           {titleInfo}
-          {rightLabel && <span className="text-xs text-white/35">{rightLabel}</span>}
+          {rightLabel && <span className="text-[11px] text-white/35">{rightLabel}</span>}
         </div>
       </header>
       {!collapsed && <div className="p-4">{children}</div>}
@@ -78,7 +78,7 @@ export function FieldRow({
 }) {
   return (
     <div className="flex items-center gap-4 py-2">
-      <label className="w-28 shrink-0 text-xs text-white/50">{label}</label>
+      <label className="w-[100px] shrink-0 text-[11px] text-white/45">{label}</label>
       <div className="min-w-0 flex-1">{children}</div>
     </div>
   );

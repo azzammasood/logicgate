@@ -1,6 +1,5 @@
 "use client";
 
-import { Sigma } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -42,7 +41,7 @@ export function AggregationSection({ values, onChange }: AggregationSectionProps
 
   return (
     <SectionCard
-      icon={Sigma}
+      iconClassName="bg-[var(--purple-dim)]"
       title="Aggregation"
       titleInfo={
         <SectionInfoTip
@@ -50,6 +49,7 @@ export function AggregationSection({ values, onChange }: AggregationSectionProps
           example="Churned users: no aggregation. Monthly revenue: SUM on amount_usd, group by calendar month."
         />
       }
+      rightLabel="how to compute"
     >
       <div className="divide-y divide-white/5">
         <FieldRow label="Function">

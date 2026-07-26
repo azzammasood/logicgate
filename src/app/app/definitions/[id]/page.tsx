@@ -97,20 +97,28 @@ export default function DefinitionDetailPage({ params }: PageProps) {
 
   return (
     <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <TabsList className="mx-6 mt-4 w-fit shrink-0 bg-[var(--surface,#161920)]">
-        <TabsTrigger value="builder">Visual Builder</TabsTrigger>
-        <TabsTrigger value="changelog">Changelog</TabsTrigger>
-        <TabsTrigger value="discuss">Discuss</TabsTrigger>
-        <TabsTrigger value="settings">Settings</TabsTrigger>
-      </TabsList>
+      {(() => {
+        // Editor-tab treatment from the design mockup: flat strip on the
+        // surface, right borders between tabs, 2px accent underline on active.
+        const tabClass =
+          "h-full flex-none rounded-none border-y-0 border-l-0 border-r border-[var(--border-color)] border-b-2 border-b-transparent px-[18px] text-[11px] text-[var(--text3)] shadow-none hover:text-[var(--text2)] data-active:border-b-[var(--accent)] data-active:bg-[var(--background)] data-active:text-[var(--fg)] dark:data-active:border-r-[var(--border-color)] dark:data-active:border-b-[var(--accent)] dark:data-active:bg-[var(--background)]";
+        return (
+          <TabsList className="h-10 w-full shrink-0 justify-start gap-0 rounded-none border-b border-[var(--border-color)] bg-[var(--surface,#161920)] p-0">
+            <TabsTrigger value="builder" className={tabClass}>Visual Builder</TabsTrigger>
+            <TabsTrigger value="changelog" className={tabClass}>Changelog</TabsTrigger>
+            <TabsTrigger value="discuss" className={tabClass}>Discuss</TabsTrigger>
+            <TabsTrigger value="settings" className={tabClass}>Settings</TabsTrigger>
+          </TabsList>
+        );
+      })()}
 
       <TabsContent value="builder" className="min-h-0 flex-1 overflow-y-auto">
         <div className="lg-fade-up px-6 pt-5">
-          <h1 className="font-[family-name:var(--app-font)] text-2xl font-bold leading-tight text-[var(--fg)]">
+          <h1 className="font-[family-name:var(--font-display)] text-[22px] font-bold leading-normal text-[var(--fg)]">
             {definition.name}
           </h1>
           {definition.description && (
-            <p className="mt-1 max-w-3xl text-sm leading-relaxed text-[var(--fg-muted)]">
+            <p className="mt-1 max-w-3xl text-xs leading-[1.7] text-[var(--text2)]">
               {definition.description}
             </p>
           )}

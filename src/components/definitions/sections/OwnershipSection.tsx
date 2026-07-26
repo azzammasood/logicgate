@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Users, X, Plus } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -145,8 +145,8 @@ export function OwnershipSection({
 
   return (
     <SectionCard
-      icon={Users}
-      title="Ownership"
+      iconClassName="bg-[var(--accent-dim)]"
+      title="Owners & Accountability"
       defaultCollapsed={defaultCollapsed}
       titleInfo={
         <SectionInfoTip

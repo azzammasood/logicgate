@@ -59,8 +59,8 @@ export function OrganizationRail() {
 
   return (
     <>
-      <aside className="hidden w-16 shrink-0 flex-col items-center gap-3 border-r border-white/10 bg-[#0a0c10] py-3 md:flex">
-        <div className="flex flex-1 flex-col items-center gap-2 overflow-y-auto">
+      <aside className="hidden w-12 shrink-0 flex-col items-center gap-2 border-r border-white/10 bg-[#0a0c10] py-3 md:flex">
+        <div className="flex flex-1 flex-col items-center gap-1.5 overflow-y-auto">
           {workspaces.map((w: Org) => {
             const active = w.id === workspaceId;
             return (
@@ -68,7 +68,7 @@ export function OrganizationRail() {
                 <TooltipTrigger
                   onClick={(e) => handleTile(w, e)}
                   className={cn(
-                    "flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl p-1 text-xs font-semibold outline-none transition-[background,color,box-shadow] duration-150",
+                    "flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg p-0.5 text-[10px] font-semibold outline-none transition-[background,color,box-shadow] duration-150",
                     active
                       ? "bg-[var(--accent,#4ade80)]/20 text-[var(--accent,#4ade80)] ring-2 ring-[var(--accent,#4ade80)]/50"
                       : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
@@ -93,9 +93,9 @@ export function OrganizationRail() {
           <Tooltip>
             <TooltipTrigger
               onClick={() => setCreateOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-dashed border-white/15 text-white/40 outline-none transition-colors duration-150 hover:border-[var(--accent,#4ade80)]/40 hover:bg-[var(--accent,#4ade80)]/5 hover:text-[var(--accent,#4ade80)]"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-dashed border-white/15 text-white/40 outline-none transition-colors duration-150 hover:border-[var(--accent,#4ade80)]/40 hover:bg-[var(--accent,#4ade80)]/5 hover:text-[var(--accent,#4ade80)]"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3.5 w-3.5" />
             </TooltipTrigger>
             <TooltipContent side="right">New organization</TooltipContent>
           </Tooltip>
@@ -113,7 +113,7 @@ export function OrganizationRail() {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{ top: Math.max(12, details.top) }}
-            className="lg-pop absolute left-[4.75rem] w-64 rounded-xl border border-white/10 bg-[var(--surface,#161920)] p-4 shadow-2xl"
+            className="lg-pop absolute left-[3.75rem] w-64 rounded-xl border border-white/10 bg-[var(--surface,#161920)] p-4 shadow-2xl"
           >
             <div className="flex items-center gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[var(--accent,#4ade80)]/15 text-sm font-semibold text-[var(--accent,#4ade80)]">
