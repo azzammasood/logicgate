@@ -165,7 +165,11 @@ export function OwnershipSection({
                 className="flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-xs text-[var(--fg)]"
               >
                 {i === 0 && (
-                  <span className="text-[9px] text-[var(--fg-muted)]" title="Primary owner">
+                  <span
+                    className="text-[11px] leading-none text-[var(--accent)]"
+                    title="Primary owner"
+                    aria-label="Primary owner"
+                  >
                     ★
                   </span>
                 )}
@@ -202,7 +206,6 @@ export function OwnershipSection({
               </span>
             )}
           </div>
-          <p className="mt-1 text-[10px] text-[var(--fg-muted)]/60">★ primary owner</p>
         </div>
 
         {available.length > 0 && (

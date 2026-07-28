@@ -246,7 +246,6 @@ export function ConditionsSection({ conditions, onChange, debounceMs = 800 }: Co
           example="status is completed AND type not in refund, chargeback."
         />
       }
-      rightLabel={`${local.length} condition${local.length === 1 ? "" : "s"}`}
     >
       <div className="space-y-2">
         {local.length === 0 && (

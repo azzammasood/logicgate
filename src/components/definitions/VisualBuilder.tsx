@@ -254,8 +254,10 @@ export function VisualBuilder({
   }, []);
 
   return (
-    <div className="relative px-6 pb-8 pt-4">
-      <div className="absolute right-6 top-0 z-10">
+    <div className="px-6 pb-8 pt-4">
+      {/* Save status sits in flow above the cards — absolute placement used to
+          overlap the first section's top edge. Fixed height keeps it steady. */}
+      <div className="mb-2 flex h-6 items-center justify-end">
         {saving ? (
           <span className="flex items-center gap-1.5 rounded-full border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-2.5 py-1 text-xs text-[var(--accent)]">
             <Loader2 className="h-3 w-3 animate-spin" />

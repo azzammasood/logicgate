@@ -49,7 +49,6 @@ export function AggregationSection({ values, onChange }: AggregationSectionProps
           example="Churned users: no aggregation. Monthly revenue: SUM on amount_usd, group by calendar month."
         />
       }
-      rightLabel="how to compute"
     >
       <div className="divide-y divide-white/5">
         <FieldRow label="Function">

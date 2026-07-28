@@ -116,7 +116,7 @@ export function AiDefinitionPrompt({
           }}
           rows={2}
           placeholder="e.g. Active users logged in within the last 30 days and are not on a trial plan"
-          className="w-full resize-y rounded-lg border border-white/10 bg-[var(--background,#0d0f14)] px-3 py-2 text-sm text-white/90 outline-none transition-colors placeholder:text-white/30 focus:border-[var(--accent)]/40"
+          className="w-full resize-y rounded-lg border border-white/10 bg-[var(--background,#0d0f14)] px-3 py-2 text-sm text-white/90 outline-none transition-colors placeholder:text-white/30"
         />
       </div>
 

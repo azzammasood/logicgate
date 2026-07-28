@@ -13,8 +13,8 @@ import { useUiStore } from "@/stores/ui";
 import { cn } from "@/lib/utils";
 
 const SECTIONS = [
-  { id: "ai", label: "AI", desc: "OpenRouter key & model" },
-  { id: "appearance", label: "Appearance", desc: "Theme & font" },
+  { id: "ai", label: "AI" },
+  { id: "appearance", label: "Appearance" },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -51,21 +51,13 @@ export function PreferencesDialog({
                   type="button"
                   onClick={() => setSection(s.id)}
                   className={cn(
-                    "flex w-full flex-col rounded-md px-3 py-2 text-left transition-colors",
+                    "flex w-full rounded-md px-3 py-2 text-left transition-colors",
                     active
                       ? "bg-[var(--accent)]/15 text-[var(--accent)]"
                       : "text-[var(--fg-muted)] hover:bg-white/5"
                   )}
                 >
                   <span className="text-sm font-medium leading-tight">{s.label}</span>
-                  <span
-                    className={cn(
-                      "truncate text-[11px] leading-tight",
-                      active ? "text-[var(--accent)]/70" : "text-white/30"
-                    )}
-                  >
-                    {s.desc}
-                  </span>
                 </button>
               );
             })}

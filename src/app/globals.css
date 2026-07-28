@@ -272,6 +272,15 @@ a {
 .lg-fade-in { animation: lg-fade-in 0.3s ease-out both; }
 .lg-fade-up { animation: lg-fade-up 0.32s ease-out both; }
 
+/* Definition tab panels ease in rather than snapping on switch. */
+@keyframes lg-tab-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+[data-slot="tabs-content"][data-active] {
+  animation: lg-tab-in 0.22s ease-out both;
+}
+
 /* Snappy popover entrance (org details, notifications, quick settings). */
 @keyframes lg-pop {
   from { opacity: 0; transform: translateY(6px) scale(0.98); }
@@ -328,7 +337,8 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lg-fade-in, .lg-fade-up, .lg-stagger > *, .lg-pulse-dot, .lg-skeleton {
+  .lg-fade-in, .lg-fade-up, .lg-stagger > *, .lg-pulse-dot, .lg-skeleton,
+  [data-slot="tabs-content"][data-active] {
     animation: none;
   }
   .theme-transition, .theme-transition *, .theme-transition body {
