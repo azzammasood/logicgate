@@ -130,7 +130,7 @@ function NavContent({
             <p className="truncate font-[family-name:var(--font-display)] text-base font-extrabold leading-tight tracking-[-0.3px] text-white">
               LogicGate
             </p>
-            <p className="text-[10px] leading-snug tracking-[0.5px] text-white/35">
+            <p className="text-[11px] leading-snug tracking-[0.5px] text-white/35">
               Data Definition Layer
             </p>
           </div>
@@ -150,7 +150,7 @@ function NavContent({
       {navSections.map((section) => (
         <div key={section.title} className="border-b border-white/10 py-2">
           {!collapsed && (
-            <p className="px-[18px] pb-1 pt-2 text-[9px] uppercase tracking-[1.5px] text-white/30">
+            <p className="px-[18px] pb-1 pt-2 text-[10px] uppercase tracking-[1.5px] text-white/30">
               {section.title}
             </p>
           )}
@@ -165,11 +165,12 @@ function NavContent({
                 href={item.href}
                 title={collapsed ? item.label : undefined}
                 className={cn(
-                  "flex items-center gap-2.5 border-l-2 py-[7px] text-xs transition-colors",
+                  "flex items-center gap-2.5 border-l-2 py-[7px] text-sm transition-colors",
                   active
                     ? "border-l-[var(--accent,#4ade80)] bg-[var(--accent-dim)] text-[var(--accent,#4ade80)]"
                     : "border-l-transparent text-white/60 hover:bg-[var(--accent-dim2)] hover:text-white",
-                  collapsed ? "justify-center px-2" : "px-[18px]"
+                  // Expanded rows sit indented under their section heading.
+                  collapsed ? "justify-center px-2" : "pl-[30px] pr-[18px]"
                 )}
               >
                 {/* Icons only in the collapsed rail; the expanded menu is text-only. */}
@@ -178,7 +179,7 @@ function NavContent({
                 {!collapsed && count > 0 && (
                   <span
                     className={cn(
-                      "rounded-full px-[6px] py-px text-[10px]",
+                      "rounded-full px-[6px] py-px text-[11px]",
                       // Active row badge is green (mockup .badge.new); the rest
                       // are quiet grey pills (mockup .badge).
                       active

@@ -57,11 +57,15 @@ export function SectionCard({
               {Icon && <Icon className="h-3.5 w-3.5" />}
             </span>
           )}
-          <h3 className="text-xs font-medium text-white/90">{title}</h3>
+          <h3 className="text-sm font-medium text-white/90">{title}</h3>
         </button>
+        {/* Right-hand affordances (AI actions, hints) belong to the open body —
+            keeping them out of the collapsed header also settles the info tip. */}
         <div className="flex items-center gap-2 pl-2">
           {titleInfo}
-          {rightLabel && <span className="text-[11px] text-white/35">{rightLabel}</span>}
+          {!collapsed && rightLabel && (
+            <span className="text-xs text-white/35">{rightLabel}</span>
+          )}
         </div>
       </header>
       {!collapsed && <div className="p-4">{children}</div>}
@@ -78,7 +82,7 @@ export function FieldRow({
 }) {
   return (
     <div className="flex items-center gap-4 py-2">
-      <label className="w-[100px] shrink-0 text-[11px] text-white/45">{label}</label>
+      <label className="w-[110px] shrink-0 text-[13px] text-white/55">{label}</label>
       <div className="min-w-0 flex-1">{children}</div>
     </div>
   );

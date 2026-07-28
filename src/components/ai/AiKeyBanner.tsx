@@ -25,7 +25,8 @@ export function AiKeyBanner() {
         <span className="font-medium text-amber-200">AI is optional</span>
         {" — "}
         add a free OpenRouter key (no credits needed) to turn plain English into
-        definitions. Everything else works without it.
+        definitions, draft change summaries, and generate documentation.
+        Everything else works without it.
       </p>
       <button
         type="button"
@@ -42,13 +43,6 @@ export function AiKeyBanner() {
       >
         Get a free key ↗
       </a>
-      <button
-        type="button"
-        onClick={dismiss}
-        className="shrink-0 rounded px-2 py-1 text-[11px] text-amber-200/70 transition-colors hover:bg-amber-500/10 hover:text-amber-100"
-      >
-        Maybe later
-      </button>
       <button
         type="button"
         onClick={dismiss}

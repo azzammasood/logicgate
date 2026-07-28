@@ -102,15 +102,6 @@ export function AiDefinitionPrompt({
           description="Turn a plain-English description into filter conditions with AI. Optional — everything here can also be built by hand in the sections below."
           example="Active users logged in within the last 30 days and are not on a trial plan."
         />
-        {!available && (
-          <button
-            type="button"
-            onClick={() => openPreferences("ai")}
-            className="ml-auto text-[11px] text-[var(--accent)] hover:underline"
-          >
-            Add API key →
-          </button>
-        )}
       </div>
 
       <div className="relative">

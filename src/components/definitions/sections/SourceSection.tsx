@@ -151,7 +151,7 @@ export function SourceSection({ values, sourceTables = [], onChange }: SourceSec
         <div className="py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <label className="text-xs text-[var(--fg-muted)]">Joins</label>
+              <label className="text-[13px] text-[var(--fg-muted)]">Joins</label>
               <SectionInfoTip
                 description="Combine multiple tables. Each join specifies the table, join type, and the ON condition. Compiles to SQL / dbt JOIN clauses."
                 example="LEFT JOIN users ON customizedplanrate.user_id = users.id"
