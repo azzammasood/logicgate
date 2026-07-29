@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ImagePlus } from "lucide-react";
+import { CheckCircle2, ImagePlus, XCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +21,14 @@ type Props = {
   onCreated: (workspaceId: string) => void;
 };
 
+type VerifiedInvite = {
+  workspaceId: string;
+  workspaceName: string;
+  logoUrl: string | null;
+  memberCount: number;
+  alreadyMember: boolean;
+};
+
 export function CreateWorkspaceDialog({
   open,
   onOpenChange,
@@ -29,7 +36,6 @@ export function CreateWorkspaceDialog({
   onCreated,
 }: Props) {
   const qc = useQueryClient();
-  const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<"create" | "join">("create");
   const [name, setName] = useState("");
@@ -38,28 +44,75 @@ export function CreateWorkspaceDialog({
   const [personalLoading, setPersonalLoading] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [joining, setJoining] = useState(false);
+  const [invite, setInvite] = useState<VerifiedInvite | null>(null);
+  const [inviteError, setInviteError] = useState<string | null>(null);
 
-  function handleJoin() {
-    const raw = inviteLink.trim();
-    if (!raw) return;
-    // Accept a full invite URL or a bare token/code.
-    const token = raw.includes("/invite/")
-      ? raw.split("/invite/")[1]!.split(/[/?#]/)[0]
-      : raw.replace(/^\/+|\/+$/g, "");
-    if (!token) return;
-    router.push(`/invite/${token}`);
+  /** Accept a full invite URL or a bare code. */
+  function parseToken(raw: string) {
+    const v = raw.trim();
+    if (!v) return "";
+    return v.includes("/invite/")
+      ? v.split("/invite/")[1]!.split(/[/?#]/)[0]!
+      : v.replace(/^\/+|\/+$/g, "");
   }
 
-  // Prefill from the org name entered during sign-up, if any.
+  const inviteToken = parseToken(inviteLink);
+
+  // Re-typing invalidates a previous check so a stale result can't be joined.
   useEffect(() => {
-    if (!open) return;
+    setInvite(null);
+    setInviteError(null);
+  }, [inviteLink]);
+
+  async function verifyInvite() {
+    const token = inviteToken;
+    if (!token) return;
+    setVerifying(true);
+    setInviteError(null);
     try {
-      const pending = window.localStorage.getItem("logicgate-pending-org");
-      if (pending && pending.trim().length >= 2) setName(pending.trim());
+      const res = await fetch(`/api/invite/${encodeURIComponent(token)}`);
+      const json = await res.json();
+      if (json.error) {
+        setInvite(null);
+        setInviteError(json.error);
+        return;
+      }
+      setInvite(json.data as VerifiedInvite);
     } catch {
-      /* ignore */
+      setInviteError("Couldn't reach the server. Check your connection.");
+    } finally {
+      setVerifying(false);
     }
-  }, [open]);
+  }
+
+  async function acceptInvite() {
+    if (!invite) return;
+    setJoining(true);
+    try {
+      const res = await fetch(`/api/invite/${encodeURIComponent(inviteToken)}`, {
+        method: "POST",
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      await qc.invalidateQueries({ queryKey: ["auth-me"] });
+      await qc.invalidateQueries({ queryKey: ["workspaces"] });
+      toast.success(
+        json.data.alreadyMember
+          ? `Switched to ${json.data.workspaceName}`
+          : `Joined ${json.data.workspaceName}`
+      );
+      onCreated(json.data.workspaceId);
+      setInviteLink("");
+      setInvite(null);
+      if (!required) onOpenChange(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't join that organization");
+    } finally {
+      setJoining(false);
+    }
+  }
 
   async function uploadLogo(file: File) {
     setUploading(true);
@@ -95,11 +148,6 @@ export function CreateWorkspaceDialog({
       });
       const json = await res.json();
       if (json.error) throw new Error(json.error);
-      try {
-        window.localStorage.removeItem("logicgate-pending-org");
-      } catch {
-        /* ignore */
-      }
       await qc.invalidateQueries({ queryKey: ["auth-me"] });
       await qc.invalidateQueries({ queryKey: ["workspaces"] });
       toast.success(opts?.personal ? "Personal workspace ready" : "Organization created");
@@ -127,10 +175,11 @@ export function CreateWorkspaceDialog({
         showCloseButton={!required}
       >
         <DialogHeader>
-          <DialogTitle>Set up your workspace</DialogTitle>
+          <DialogTitle>{required ? "Set up your workspace" : "Add an organization"}</DialogTitle>
           <DialogDescription className="text-white/50">
-            Create a workspace for your organization, join one you were invited
-            to, or continue solo with a personal workspace.
+            {required
+              ? "Were you invited to an organization? Paste the invite to join it. Otherwise create one, or continue solo with a personal workspace."
+              : "Create a new organization or join one you've been invited to."}
           </DialogDescription>
         </DialogHeader>
 
@@ -159,21 +208,99 @@ export function CreateWorkspaceDialog({
               <Input
                 value={inviteLink}
                 onChange={(e) => setInviteLink(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && inviteToken && !invite) {
+                    e.preventDefault();
+                    void verifyInvite();
+                  }
+                }}
                 placeholder="https://…/invite/abc123 or abc123"
                 className="w-full bg-[#0d0f14]"
               />
               <p className="text-[11px] text-white/30">
-                Paste the invite your team sent you to join their organization.
+                Paste the invite your team sent you. We&apos;ll check it before
+                you join.
               </p>
             </div>
-            <Button
-              type="button"
-              disabled={inviteLink.trim().length === 0}
-              onClick={handleJoin}
-              className="w-full bg-[var(--accent,#4ade80)] text-black"
-            >
-              Continue to invite
-            </Button>
+
+            {inviteError && (
+              <p className="flex items-start gap-1.5 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+                <XCircle className="mt-px h-3.5 w-3.5 shrink-0" />
+                {inviteError}
+              </p>
+            )}
+
+            {/* Verified: name the organization before the user commits. */}
+            {invite && (
+              <div className="rounded-lg border border-[var(--accent,#4ade80)]/25 bg-[var(--accent,#4ade80)]/[0.07] p-3">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[var(--accent,#4ade80)]/15 text-xs font-semibold text-[var(--accent,#4ade80)]">
+                    {invite.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={invite.logoUrl} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      invite.workspaceName.slice(0, 2).toUpperCase()
+                    )}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="flex items-center gap-1.5 text-[11px] text-[var(--accent,#4ade80)]">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      {invite.alreadyMember ? "You're already a member" : "Valid invite"}
+                    </p>
+                    <p className="truncate text-sm font-semibold text-white">
+                      {invite.workspaceName}
+                    </p>
+                    <p className="text-[11px] text-white/40">
+                      {invite.memberCount} member{invite.memberCount === 1 ? "" : "s"}
+                      {!invite.alreadyMember && " · you'll join as a viewer"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {invite ? (
+              <Button
+                type="button"
+                disabled={joining}
+                onClick={acceptInvite}
+                className="w-full bg-[var(--accent,#4ade80)] text-black"
+              >
+                {joining
+                  ? "Joining…"
+                  : invite.alreadyMember
+                    ? `Switch to ${invite.workspaceName}`
+                    : `Join ${invite.workspaceName}`}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                disabled={!inviteToken || verifying}
+                onClick={verifyInvite}
+                className="w-full bg-[var(--accent,#4ade80)] text-black"
+              >
+                {verifying ? "Checking…" : "Verify invite"}
+              </Button>
+            )}
+
+            {required && (
+              <>
+                <div className="my-4 flex items-center gap-3 text-[10px] uppercase tracking-wider text-white/25">
+                  <span className="h-px flex-1 bg-white/10" />
+                  or
+                  <span className="h-px flex-1 bg-white/10" />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={personalLoading || joining}
+                  onClick={() => createWorkspace("Personal workspace", { personal: true })}
+                  className="w-full border-white/10"
+                >
+                  {personalLoading ? "Setting up…" : "No invite — continue solo"}
+                </Button>
+              </>
+            )}
           </div>
         ) : (
           <>

@@ -10,9 +10,18 @@ import { AnimatedLogo } from "@/components/landing/AnimatedLogo";
 
 type Props = { params: Promise<{ token: string }> };
 
+type Invite = {
+  workspaceId: string;
+  workspaceName: string;
+  logoUrl: string | null;
+  memberCount: number;
+  alreadyMember: boolean;
+};
+
 type State =
   | { kind: "checking" }
   | { kind: "signedOut" }
+  | { kind: "confirm"; invite: Invite }
   | { kind: "accepting" }
   | { kind: "success"; workspaceName: string; alreadyMember: boolean }
   | { kind: "error"; message: string };
@@ -34,27 +43,17 @@ export default function InvitePage({ params }: Props) {
     if (attempted.current) return;
     attempted.current = true;
 
+    // Verify only — joining is an explicit click, not a side effect of
+    // opening a link someone sent you.
     (async () => {
-      setState({ kind: "accepting" });
       try {
-        const res = await fetch(`/api/invite/${encodeURIComponent(token)}`, {
-          method: "POST",
-        });
+        const res = await fetch(`/api/invite/${encodeURIComponent(token)}`);
         const json = await res.json();
         if (json.error) {
           setState({ kind: "error", message: json.error });
           return;
         }
-        setWorkspace(json.data.workspaceId);
-        setState({
-          kind: "success",
-          workspaceName: json.data.workspaceName,
-          alreadyMember: json.data.alreadyMember,
-        });
-        setTimeout(() => {
-          router.push("/app/dashboard");
-          router.refresh();
-        }, 1200);
+        setState({ kind: "confirm", invite: json.data as Invite });
       } catch {
         setState({
           kind: "error",
@@ -62,7 +61,36 @@ export default function InvitePage({ params }: Props) {
         });
       }
     })();
-  }, [loading, user, token, router, setWorkspace]);
+  }, [loading, user, token]);
+
+  async function acceptInvite() {
+    setState({ kind: "accepting" });
+    try {
+      const res = await fetch(`/api/invite/${encodeURIComponent(token)}`, {
+        method: "POST",
+      });
+      const json = await res.json();
+      if (json.error) {
+        setState({ kind: "error", message: json.error });
+        return;
+      }
+      setWorkspace(json.data.workspaceId);
+      setState({
+        kind: "success",
+        workspaceName: json.data.workspaceName,
+        alreadyMember: json.data.alreadyMember,
+      });
+      setTimeout(() => {
+        router.push("/app/dashboard");
+        router.refresh();
+      }, 1200);
+    } catch {
+      setState({
+        kind: "error",
+        message: "Couldn't reach the server. Check your connection and try again.",
+      });
+    }
+  }
 
   const loginHref = `/login?redirect=${encodeURIComponent(`/invite/${token}`)}`;
   const signupHref = `/signup?redirect=${encodeURIComponent(`/invite/${token}`)}`;
@@ -78,8 +106,52 @@ export default function InvitePage({ params }: Props) {
         {(state.kind === "checking" || state.kind === "accepting") && (
           <p className="mt-4 flex items-center justify-center gap-2 text-sm text-white/60">
             <Loader2 className="h-4 w-4 animate-spin" />
-            {state.kind === "checking" ? "Checking your session…" : "Joining workspace…"}
+            {state.kind === "checking" ? "Checking this invite…" : "Joining workspace…"}
           </p>
+        )}
+
+        {state.kind === "confirm" && (
+          <>
+            <div className="mt-5 flex items-center gap-3 rounded-lg border border-[var(--accent,#4ade80)]/25 bg-[var(--accent,#4ade80)]/[0.07] p-3 text-left">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[var(--accent,#4ade80)]/15 text-sm font-semibold text-[var(--accent,#4ade80)]">
+                {state.invite.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={state.invite.logoUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  state.invite.workspaceName.slice(0, 2).toUpperCase()
+                )}
+              </span>
+              <div className="min-w-0">
+                <p className="flex items-center gap-1.5 text-[11px] text-[var(--accent,#4ade80)]">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  {state.invite.alreadyMember ? "You're already a member" : "Valid invite"}
+                </p>
+                <p className="truncate text-sm font-semibold text-white">
+                  {state.invite.workspaceName}
+                </p>
+                <p className="text-[11px] text-white/40">
+                  {state.invite.memberCount} member
+                  {state.invite.memberCount === 1 ? "" : "s"}
+                  {!state.invite.alreadyMember && " · you'll join as a viewer"}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={acceptInvite}
+              className="mt-4 inline-flex h-9 w-full items-center justify-center rounded-lg bg-[var(--accent)] px-4 text-sm font-medium text-black hover:opacity-90"
+            >
+              {state.invite.alreadyMember
+                ? `Switch to ${state.invite.workspaceName}`
+                : `Join ${state.invite.workspaceName}`}
+            </button>
+            <Link
+              href="/app/dashboard"
+              className="mt-3 inline-block text-xs text-white/40 hover:text-white/70"
+            >
+              Not now
+            </Link>
+          </>
         )}
 
         {state.kind === "signedOut" && (

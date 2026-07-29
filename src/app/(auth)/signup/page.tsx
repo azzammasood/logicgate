@@ -14,8 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useWorkspaceStore } from "@/stores/workspace";
-import { useAiStore } from "@/stores/ai";
 import { toast } from "sonner";
 import { USER_ROLES, formatUserRole } from "@/lib/roles";
 import { AnimatedLogo } from "@/components/landing/AnimatedLogo";
@@ -33,7 +31,6 @@ type FieldErrors = {
   email?: string;
   password?: string;
   confirmPassword?: string;
-  organizationName?: string;
 };
 
 function validate(values: {
@@ -41,7 +38,6 @@ function validate(values: {
   email: string;
   password: string;
   confirmPassword: string;
-  organizationName: string;
 }): FieldErrors {
   const errors: FieldErrors = {};
 
@@ -63,28 +59,16 @@ function validate(values: {
     errors.confirmPassword = "Passwords don't match.";
   }
 
-  // Organization is optional (personal use allowed). Only validate if provided.
-  if (
-    values.organizationName.trim().length > 0 &&
-    values.organizationName.trim().length < 2
-  ) {
-    errors.organizationName = "Organization name must be at least 2 characters.";
-  }
-
   return errors;
 }
 
 export default function SignupPage() {
   const router = useRouter();
-  const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
-  const setAiKey = useAiStore((s) => s.setApiKey);
   const { user, loading: sessionLoading } = useSessionUser();
   const [name, setName] = useState("");
-  const [openrouterKey, setOpenrouterKey] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [organizationName, setOrganizationName] = useState("");
   const [role, setRole] = useState("STAKEHOLDER");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -103,21 +87,10 @@ export default function SignupPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const validation = validate({
-      name,
-      email,
-      password,
-      confirmPassword,
-      organizationName,
-    });
+    const validation = validate({ name, email, password, confirmPassword });
     setErrors(validation);
     if (Object.keys(validation).length > 0) {
       return;
-    }
-
-    // Persist the optional AI key locally so it's ready after first sign-in.
-    if (openrouterKey.trim()) {
-      setAiKey(openrouterKey.trim());
     }
 
     setLoading(true);
@@ -149,37 +122,15 @@ export default function SignupPage() {
 
       // When email confirmation is enabled in Supabase, sign-up returns no
       // session — the account isn't usable until the user verifies their email.
-      // Stash the org name so onboarding can create it after first sign-in.
       if (!data.session) {
-        try {
-          window.localStorage.setItem(
-            "logicgate-pending-org",
-            organizationName.trim()
-          );
-        } catch {
-          /* ignore storage failures */
-        }
         setVerificationEmail(email.trim());
         return;
       }
 
+      // Workspace setup is deliberately *not* done here. WorkspaceProvider sees
+      // a user with no workspaces and opens the onboarding dialog, where they
+      // can join an org by invite or continue solo.
       await fetch("/api/auth/sync", { method: "POST" });
-      const orgName =
-        organizationName.trim() ||
-        `${name.trim().split(/\s+/)[0] || "My"}'s workspace`;
-      const ws = await fetch("/api/workspaces", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: orgName }),
-      });
-      const wsData = await ws.json();
-      if (wsData.error) {
-        toast.error(wsData.error);
-        return;
-      }
-      if (wsData.data?.id) {
-        setWorkspace(wsData.data.id);
-      }
       toast.success("Welcome to LogicGate");
       router.push("/app/dashboard");
       router.refresh();
@@ -375,38 +326,6 @@ export default function SignupPage() {
                 {errors.confirmPassword}
               </p>
             ) : null}
-          </div>
-          <div>
-            <Input
-              placeholder="Organization name (optional)"
-              value={organizationName}
-              onChange={(e) => {
-                setOrganizationName(e.target.value);
-                clearError("organizationName");
-              }}
-              aria-invalid={errors.organizationName ? true : undefined}
-              className={fieldClass("organizationName")}
-            />
-            {errors.organizationName ? (
-              <p className="mt-1.5 text-xs text-red-400">
-                {errors.organizationName}
-              </p>
-            ) : (
-              <p className="mt-1.5 text-xs text-white/30">
-                Leave blank to use LogicGate for your personal logics.
-              </p>
-            )}
-          </div>
-          <div>
-            <PasswordInput
-              placeholder="OpenRouter API key (optional)"
-              value={openrouterKey}
-              onChange={(e) => setOpenrouterKey(e.target.value)}
-              className="border-white/10 bg-[var(--background,#0d0f14)] font-mono text-xs"
-            />
-            <p className="mt-1.5 text-xs text-white/30">
-              Enables AI features (free models available). You can add this later in Preferences → AI.
-            </p>
           </div>
           <Select value={role} onValueChange={(v) => v && setRole(v)}>
             <SelectTrigger className={selectTriggerClass}>

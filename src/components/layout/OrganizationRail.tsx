@@ -99,7 +99,7 @@ export function OrganizationRail() {
             >
               <Plus className="h-3.5 w-3.5" />
             </TooltipTrigger>
-            <TooltipContent side="right">New organization</TooltipContent>
+            <TooltipContent side="right">Create or join an organization</TooltipContent>
           </Tooltip>
         </div>
       </aside>
