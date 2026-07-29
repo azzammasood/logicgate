@@ -24,9 +24,9 @@ export function AiKeyBanner() {
       <p className="min-w-0 flex-1 leading-relaxed">
         <span className="font-medium text-amber-200">AI is optional</span>
         {" — "}
-        add a free OpenRouter key (no credits needed) to turn plain English into
-        definitions, draft change summaries, and generate documentation.
-        Everything else works without it.
+        add a free OpenRouter key to turn plain English into definitions, draft
+        change summaries, and generate documentation. Everything else works
+        without it.
       </p>
       <button
         type="button"

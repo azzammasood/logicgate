@@ -145,11 +145,11 @@ function SortableRow({
         placeholder="field"
         value={row.field}
         onChange={(e) => onUpdate({ field: e.target.value })}
-        className="h-7 min-w-[110px] flex-1 rounded-md bg-[var(--blue-dim)] text-[11px] text-[var(--blue)] placeholder:text-[var(--blue)]/40"
+        className="h-7 min-w-[110px] flex-1 rounded-md bg-[var(--background,#0d0f14)] text-[11px] text-[var(--blue)] placeholder:text-[var(--blue)]/40"
       />
 
       <Select value={row.operator} onValueChange={(v) => v && onUpdate({ operator: v })}>
-        <SelectTrigger className="h-7 w-28 rounded-md bg-white/5 text-xs text-white/60">
+        <SelectTrigger className="h-7 w-28 rounded-md bg-[var(--background,#0d0f14)] text-xs text-white/60">
           <SelectValue>{OPERATOR_LABELS[row.operator] ?? row.operator}</SelectValue>
         </SelectTrigger>
         <SelectContent className={contentClass}>
@@ -166,7 +166,7 @@ function SortableRow({
           placeholder="value"
           value={row.value ?? ""}
           onChange={(e) => onUpdate({ value: e.target.value || null })}
-          className="h-7 min-w-[90px] flex-1 rounded-md bg-[var(--amber-dim)] text-[11px] text-[var(--amber)] placeholder:text-[var(--amber)]/40"
+          className="h-7 min-w-[90px] flex-1 rounded-md bg-[var(--background,#0d0f14)] text-[11px] text-[var(--amber)] placeholder:text-[var(--amber)]/40"
         />
       )}
 

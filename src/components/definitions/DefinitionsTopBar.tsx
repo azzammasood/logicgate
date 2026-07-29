@@ -76,7 +76,7 @@ export function DefinitionsTopBar() {
             const meta = STATUS_META[definition.status] ?? STATUS_META.DRAFT;
             return (
               <span
-                className="hidden items-center gap-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--surface3)] px-2.5 py-[5px] text-[11px] text-[var(--text2)] sm:flex"
+                className="hidden items-center gap-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--background,#0d0f14)] px-2.5 py-[5px] text-[11px] text-[var(--text2)] sm:flex"
                 title={`Version ${definition.currentVersion} · ${meta.label}`}
               >
                 <span

@@ -13,7 +13,9 @@ import {
   SlidersHorizontal,
   Plug,
   PanelLeft,
+  Search,
 } from "lucide-react";
+import { OPEN_PALETTE_EVENT } from "@/components/CommandPalette";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/ui";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -195,6 +197,23 @@ function NavContent({
           })}
         </div>
       ))}
+
+      {/* Command palette hint — the shortcut is otherwise undiscoverable. */}
+      {!collapsed && (
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new Event(OPEN_PALETTE_EVENT))}
+          className="mx-[18px] mb-3 mt-auto flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-[var(--background,#0d0f14)] px-3 py-2.5 text-left transition-colors hover:border-white/20 hover:bg-white/5"
+        >
+          <span className="flex items-center gap-2 text-[13px] text-white/55">
+            <Search className="h-4 w-4 shrink-0" />
+            Search &amp; commands
+          </span>
+          <kbd className="shrink-0 rounded border border-white/15 bg-white/5 px-1.5 py-0.5 font-[family-name:var(--app-font)] text-[11px] text-white/60">
+            Ctrl K
+          </kbd>
+        </button>
+      )}
     </nav>
   );
 }

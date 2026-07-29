@@ -23,6 +23,8 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  // True from the moment a sign-in starts until we've navigated away.
+  const [signingIn, setSigningIn] = useState(false);
 
   async function syncAndRedirect() {
     try {
@@ -42,6 +44,7 @@ function LoginForm() {
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign-in sync failed");
+      setSigningIn(false);
       return;
     }
     router.push(searchParams.get("redirect") ?? "/app/dashboard");
@@ -51,11 +54,13 @@ function LoginForm() {
   async function handlePassword(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    setSigningIn(true);
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast.error(error.message);
+        setSigningIn(false);
         return;
       }
       await syncAndRedirect();
@@ -63,6 +68,7 @@ function LoginForm() {
       toast.error(
         "Couldn't reach the authentication server. Check your connection or Supabase configuration."
       );
+      setSigningIn(false);
     } finally {
       setLoading(false);
     }
@@ -113,7 +119,10 @@ function LoginForm() {
     return <div className="text-white/50">Loading…</div>;
   }
 
-  if (user) {
+  // Only offer "continue as" to someone who arrived already signed in. Without
+  // the guard, a successful sign-in flips `user` before the redirect lands and
+  // the form is replaced by "you're already signed in".
+  if (user && !signingIn) {
     return <ContinueAsUser user={user} />;
   }
 

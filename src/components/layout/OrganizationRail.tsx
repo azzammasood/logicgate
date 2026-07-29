@@ -62,7 +62,7 @@ export function OrganizationRail() {
       <aside className="hidden w-12 shrink-0 flex-col items-center gap-2 border-r border-white/10 bg-[#0a0c10] py-3 md:flex">
         {/* overflow-y-auto also clips horizontally, which shaved the active
             tile's ring and the scrollbar off the rail — pad it and hide the bar. */}
-        <div className="flex w-full flex-1 flex-col items-center gap-1.5 overflow-y-auto px-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex w-full flex-1 flex-col items-center gap-1.5 overflow-y-auto px-1.5 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {workspaces.map((w: Org) => {
             const active = w.id === workspaceId;
             return (

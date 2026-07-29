@@ -188,7 +188,9 @@ export default function SignupPage() {
     );
   }
 
-  if (user) {
+  // `loading` stays true through the post-signup redirect, so a fresh session
+  // doesn't swap the form for "you're already signed in".
+  if (user && !loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[var(--background,#0d0f14)] px-4">
         <ContinueAsUser user={user} />
@@ -327,18 +329,23 @@ export default function SignupPage() {
               </p>
             ) : null}
           </div>
-          <Select value={role} onValueChange={(v) => v && setRole(v)}>
-            <SelectTrigger className={selectTriggerClass}>
-              <SelectValue placeholder="Role">{formatUserRole(role)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent className={selectContentClass}>
-              {USER_ROLES.map((r) => (
-                <SelectItem key={r} value={r}>
-                  {formatUserRole(r)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="space-y-1.5">
+            <label className="block text-xs text-white/50">
+              What&apos;s your role? We&apos;ll tailor the defaults to it.
+            </label>
+            <Select value={role} onValueChange={(v) => v && setRole(v)}>
+              <SelectTrigger className={selectTriggerClass}>
+                <SelectValue placeholder="Role">{formatUserRole(role)}</SelectValue>
+              </SelectTrigger>
+              <SelectContent className={selectContentClass}>
+                {USER_ROLES.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {formatUserRole(r)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <Button
             type="submit"
             disabled={loading}

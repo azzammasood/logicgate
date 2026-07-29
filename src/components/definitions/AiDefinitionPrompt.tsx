@@ -96,7 +96,8 @@ export function AiDefinitionPrompt({
 
   return (
     <section className="rounded-xl border border-[var(--accent)]/25 bg-gradient-to-br from-[var(--accent)]/[0.06] to-transparent p-4">
-      <div className="mb-2.5 flex items-center gap-2">
+      {/* Info tip sits hard right, matching the section cards below. */}
+      <div className="mb-2.5 flex items-center justify-between gap-2">
         <h3 className="text-sm font-medium text-white/90">Describe it in plain English</h3>
         <SectionInfoTip
           description="Turn a plain-English description into filter conditions with AI. Optional — everything here can also be built by hand in the sections below."

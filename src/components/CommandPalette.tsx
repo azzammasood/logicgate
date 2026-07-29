@@ -35,6 +35,9 @@ const pages = [
   { href: "/app/settings", label: "Configuration", icon: Settings },
 ];
 
+/** Dispatch on `window` to open the palette without a keypress. */
+export const OPEN_PALETTE_EVENT = "logicgate:open-palette";
+
 // Two-column tiled grid; arrow keys navigate it spatially (see the keydown
 // handler below). `GRID_COLS` must match the `grid-cols-*` used in `gridClass`.
 const GRID_COLS = 2;
@@ -91,8 +94,14 @@ export function CommandPalette() {
         setOpen((o) => !o);
       }
     };
+    // Lets non-keyboard affordances (the sidebar hint) open the palette too.
+    const openFromEvent = () => setOpen(true);
     document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
+    window.addEventListener(OPEN_PALETTE_EVENT, openFromEvent);
+    return () => {
+      document.removeEventListener("keydown", down);
+      window.removeEventListener(OPEN_PALETTE_EVENT, openFromEvent);
+    };
   }, []);
 
   // Grid-aware arrow navigation. cmdk only moves through items linearly, which

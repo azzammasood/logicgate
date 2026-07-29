@@ -123,7 +123,14 @@ export function DefinitionsListPanel() {
   };
 
   return (
-    <aside className="relative flex w-[280px] shrink-0 flex-col border-r border-white/10 bg-[var(--surface,#161920)]">
+    // On phones the rail takes the full width and steps aside once a
+    // definition is open, so the builder isn't squeezed into ~40px.
+    <aside
+      className={cn(
+        "relative flex w-full shrink-0 flex-col border-r border-white/10 bg-[var(--surface,#161920)] md:w-[240px] lg:w-[280px]",
+        /^\/app\/definitions\/[^/]+/.test(pathname) && "hidden md:flex"
+      )}
+    >
       <div className="border-b border-white/10 px-4 pb-3 pt-3.5">
         <div className="mb-2.5 flex items-center justify-between gap-2">
           <h2 className="text-[11px] text-[var(--text2)]">All Definitions</h2>

@@ -23,6 +23,7 @@ export function DocumentationSection({
   return (
     <SectionCard
       defaultCollapsed={defaultCollapsed}
+      iconClassName="bg-[var(--blue-dim)]"
       title="Documentation"
       titleInfo={
         <SectionInfoTip
