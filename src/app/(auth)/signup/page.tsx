@@ -20,8 +20,10 @@ import { AnimatedLogo } from "@/components/landing/AnimatedLogo";
 import { useSessionUser } from "@/lib/supabase/useSessionUser";
 import { ContinueAsUser } from "@/components/auth/ContinueAsUser";
 
+// Dropdowns portal to <body>, so they need the auth font named explicitly —
+// inheriting would give them the in-app font instead.
 const selectContentClass =
-  "z-[200] border border-white/10 bg-[#161920] shadow-xl";
+  "z-[200] border border-white/10 bg-[#161920] font-[family-name:var(--font-auth-mono)] shadow-xl";
 const selectTriggerClass = "w-full bg-[#0d0f14] border-white/10";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

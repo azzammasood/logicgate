@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Mono, Syne } from "next/font/google";
+import { DM_Mono, JetBrains_Mono, Syne } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AppearanceProvider } from "@/components/providers/AppearanceProvider";
@@ -25,6 +25,17 @@ const syne = Syne({
   preload: false,
 });
 
+// Auth pages' terminal font. Declared here rather than in (auth)/layout so the
+// variable lives on <body> — dropdowns portal out of the auth subtree and would
+// otherwise fall back to the in-app font mid-form.
+const authMono = JetBrains_Mono({
+  variable: "--font-auth-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+  preload: false,
+});
+
 export const metadata: Metadata = {
   title: "LogicGate",
   description: "Define metrics and business rules with accountability",
@@ -35,7 +46,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="dark" style={{ colorScheme: "dark" }}>
-      <body className={`${dmMono.variable} ${syne.variable} min-h-screen`}>
+      <body
+        className={`${dmMono.variable} ${syne.variable} ${authMono.variable} min-h-screen`}
+      >
         <QueryProvider>
           <AppearanceProvider>
             <TooltipProvider>
