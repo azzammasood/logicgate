@@ -12,6 +12,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { AnimatedLogo } from "@/components/landing/AnimatedLogo";
 import { useSessionUser } from "@/lib/supabase/useSessionUser";
 import { ContinueAsUser } from "@/components/auth/ContinueAsUser";
+import { OAuthButtons } from "@/components/auth/OAuthButtons";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -133,7 +134,15 @@ function LoginForm() {
         LogicGate
       </h1>
       <p className="mt-2 text-sm text-white/50">Sign in to your workspace</p>
-      <form onSubmit={handlePassword} className="mt-8 space-y-4">
+      <div className="mt-6">
+        <OAuthButtons next={searchParams.get("redirect") ?? "/app/dashboard"} />
+      </div>
+      <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-white/25">
+        <span className="h-px flex-1 bg-white/10" />
+        or with email
+        <span className="h-px flex-1 bg-white/10" />
+      </div>
+      <form onSubmit={handlePassword} className="space-y-4">
         <Input
           type="email"
           placeholder="Email"

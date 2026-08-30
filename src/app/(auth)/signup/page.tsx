@@ -19,6 +19,7 @@ import { USER_ROLES, formatUserRole } from "@/lib/roles";
 import { AnimatedLogo } from "@/components/landing/AnimatedLogo";
 import { useSessionUser } from "@/lib/supabase/useSessionUser";
 import { ContinueAsUser } from "@/components/auth/ContinueAsUser";
+import { OAuthButtons } from "@/components/auth/OAuthButtons";
 
 // Dropdowns portal to <body>, so they need the auth font named explicitly —
 // inheriting would give them the in-app font instead.
@@ -260,10 +261,15 @@ export default function SignupPage() {
         <h1 className="font-[family-name:var(--font-auth-mono)] text-2xl font-bold text-[var(--accent,#4ade80)]">
           Create account
         </h1>
-        <p className="mt-1 text-sm text-white/50">
-          Start defining — solo or with your team.
-        </p>
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4" noValidate>
+        <div className="mt-6">
+          <OAuthButtons next="/app/dashboard" />
+        </div>
+        <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-white/25">
+          <span className="h-px flex-1 bg-white/10" />
+          or sign up with email
+          <span className="h-px flex-1 bg-white/10" />
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div>
             <Input
               placeholder="Full name"
