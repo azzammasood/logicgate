@@ -128,16 +128,16 @@ function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-lg border border-white/10 bg-[#161920] p-8">
-      <AnimatedLogo size={72} className="mb-6" />
+    <div className="w-full max-w-md rounded-lg border border-white/10 bg-[#161920] p-6">
+      <AnimatedLogo size={52} animateOnHover className="mb-4" />
       <h1 className="font-[family-name:var(--font-auth-mono)] text-2xl font-bold text-[#4ade80]">
         LogicGate
       </h1>
       <p className="mt-2 text-sm text-white/50">Sign in to your workspace</p>
-      <div className="mt-6">
+      <div className="mt-5">
         <OAuthButtons next={searchParams.get("redirect") ?? "/app/dashboard"} />
       </div>
-      <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-white/25">
+      <div className="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wider text-white/25">
         <span className="h-px flex-1 bg-white/10" />
         or with email
         <span className="h-px flex-1 bg-white/10" />

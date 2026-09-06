@@ -255,21 +255,21 @@ export default function SignupPage() {
     }`;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[var(--background,#0d0f14)] px-4 py-10">
-      <div className="w-full max-w-md rounded-lg border border-white/10 bg-[var(--surface,#161920)] p-8">
-        <AnimatedLogo size={72} className="mb-6" />
+    <main className="flex min-h-screen items-center justify-center bg-[var(--background,#0d0f14)] px-4 py-6">
+      <div className="w-full max-w-md rounded-lg border border-white/10 bg-[var(--surface,#161920)] p-6">
+        <AnimatedLogo size={52} animateOnHover className="mb-4" />
         <h1 className="font-[family-name:var(--font-auth-mono)] text-2xl font-bold text-[var(--accent,#4ade80)]">
           Create account
         </h1>
-        <div className="mt-6">
+        <div className="mt-5">
           <OAuthButtons next="/app/dashboard" />
         </div>
-        <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-white/25">
+        <div className="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wider text-white/25">
           <span className="h-px flex-1 bg-white/10" />
           or sign up with email
           <span className="h-px flex-1 bg-white/10" />
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-3" noValidate>
           <div>
             <Input
               placeholder="Full name"
@@ -362,7 +362,7 @@ export default function SignupPage() {
             {loading ? "Creating account…" : "Sign up"}
           </Button>
         </form>
-        <p className="mt-6 text-center text-sm text-white/40">
+        <p className="mt-5 text-center text-sm text-white/40">
           Already have an account?{" "}
           <Link href="/login" className="text-[var(--accent,#4ade80)] hover:underline">
             Sign in

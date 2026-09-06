@@ -12,16 +12,21 @@ type AnimatedLogoProps = {
   className?: string;
   /** Display size in px (badge is square). */
   size?: number;
+  /** When true, the glyph is still until hovered (used on auth pages). */
+  animateOnHover?: boolean;
 };
 
 /**
  * Animated badge logo — green rounded square with black glyph (matches LogoBadge).
  */
-export function AnimatedLogo({ className, size = 120 }: AnimatedLogoProps) {
+export function AnimatedLogo({ className, size = 120, animateOnHover = false }: AnimatedLogoProps) {
   const { x: ox, y: oy } = LOGO_BADGE_GLYPH_ORIGIN;
   const { x: cx, y: cy } = LOGO_GLYPH_CENTER;
   const s = LOGO_BADGE_GLYPH_SCALE;
   const tf = `translate(${ox} ${oy}) scale(${s}) translate(${-cx} ${-cy})`;
+  // When hover-gated, the animation selectors only fire while hovered.
+  const sel = (cls: string) =>
+    animateOnHover ? `.lg-logo-hoverable:hover ${cls}` : cls;
 
   return (
     <div className={className}>
@@ -29,7 +34,7 @@ export function AnimatedLogo({ className, size = 120 }: AnimatedLogoProps) {
         width={size}
         height={size}
         viewBox="0 0 48 48"
-        className="lg-logo mx-auto block"
+        className={`lg-logo mx-auto block${animateOnHover ? " lg-logo-hoverable" : ""}`}
         aria-hidden
       >
         <style>{`
@@ -51,17 +56,17 @@ export function AnimatedLogo({ className, size = 120 }: AnimatedLogoProps) {
             to { stroke-dashoffset: -12; }
           }
           @media (prefers-reduced-motion: no-preference) {
-            .lg-core {
+            ${sel(".lg-core")} {
               animation: lg-core-pulse 2.6s ease-in-out infinite;
               will-change: opacity;
             }
-            .lg-ping {
+            ${sel(".lg-ping")} {
               transform-box: fill-box;
               transform-origin: center;
               animation: lg-ping 2.6s ease-out infinite;
               will-change: opacity, transform;
             }
-            .lg-signal {
+            ${sel(".lg-signal")} {
               stroke-dasharray: 3 3;
               animation: lg-signal-flow 1.6s linear infinite;
               will-change: stroke-dashoffset;

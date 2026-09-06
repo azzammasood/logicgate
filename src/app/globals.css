@@ -84,6 +84,11 @@
     outline: 2px solid var(--accent) !important;
     outline-offset: 2px;
   }
+  /* Always reserve the scrollbar gutter so opening a dropdown/dialog (which
+     locks body scroll) doesn't shift centered layouts sideways. */
+  html {
+    scrollbar-gutter: stable;
+  }
   body {
     background-color: var(--background);
     color: var(--fg);

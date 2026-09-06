@@ -3,6 +3,7 @@ import { MarketingLogo } from "@/components/marketing/MarketingLogo";
 
 const PRODUCT_LINKS = [
   { label: "Features", href: "/features" },
+  { label: "Accountability", href: "/accountability" },
   { label: "Security", href: "/security" },
 ] as const;
 
@@ -37,8 +38,8 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="marketing-footer-col-title">Company</p>
-          <nav className="marketing-footer-col-links" aria-label="Company">
+          <p className="marketing-footer-col-title">Resources</p>
+          <nav className="marketing-footer-col-links" aria-label="Resources">
             {COMPANY_LINKS.map(({ label, href }) =>
               href.startsWith("mailto:") ? (
                 <a key={href} href={href} className="marketing-footer-link">

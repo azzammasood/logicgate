@@ -181,6 +181,8 @@ export function SeeItInActionSection() {
     DEFAULT_DEMO_CONDITIONS
   );
   const [activeTab, setActiveTab] = useState(0);
+  // Demo "version": bumps each time the logic is edited, resets on reload.
+  const [revision, setRevision] = useState(0);
   const [compileToken, setCompileToken] = useState(0);
   const debouncedConditions = useDebouncedValue(conditions, 180);
 
@@ -200,6 +202,7 @@ export function SeeItInActionSection() {
       setConditions((prev) =>
         prev.map((c) => (c.id === id ? { ...c, ...patch } : c))
       );
+      setRevision((r) => r + 1);
     },
     []
   );
@@ -273,7 +276,7 @@ export function SeeItInActionSection() {
                   padding: "3px 8px",
                 }}
               >
-                v4.2
+                v4.{2 + revision}
               </span>
             </div>
             <div style={{ padding: 16 }}>
@@ -372,7 +375,7 @@ export function SeeItInActionSection() {
                   background: "var(--bg)",
                   border: "1px solid var(--border)",
                   borderRadius: 7,
-                  padding: "14px 16px",
+                  padding: "20px 22px",
                 }}
               >
                 <CompileOutputPanel
