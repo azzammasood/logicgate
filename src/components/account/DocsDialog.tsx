@@ -17,6 +17,7 @@ import {
   Code2,
   Users,
   Rocket,
+  User,
 } from "lucide-react";
 
 const P = "mt-2 text-sm leading-relaxed text-[var(--fg-muted)]";
@@ -25,6 +26,57 @@ const UL = "mt-2 list-disc space-y-1.5 pl-5 text-sm text-[var(--fg-muted)]";
 const STRONG = "font-medium text-[var(--fg)]";
 
 const SECTIONS = [
+  {
+    id: "about",
+    label: "About",
+    icon: User,
+    content: (
+      <>
+        <h3 className="text-lg font-semibold">Who made this</h3>
+        <p className={P}>
+          Hi, I&rsquo;m Ahmad Uzzam Masood, and I built LogicGate on my own. I work
+          as a data engineer, and I kept running into the same problem: the business
+          logic behind our metrics lived in meetings, spreadsheets, and side
+          conversations, never in a system anyone could actually trust. Definitions
+          drifted, reports disagreed, and engineers spent their time reconciling
+          numbers instead of building.
+        </p>
+        <p className={P}>
+          So I built the tool I wished I had. LogicGate lets stakeholders define
+          metrics visually, versions and reviews every change, and hands engineers
+          compiled output they can drop straight into SQL, Python, or dbt. It&rsquo;s
+          free to use, and I&rsquo;m still actively improving it.
+        </p>
+        <h4 className={H4}>Get in touch</h4>
+        <p className={P}>
+          I&rsquo;d genuinely love your feedback, ideas, or bug reports. You can
+          reach me here:
+        </p>
+        <ul className={UL}>
+          <li>
+            <span className={STRONG}>Email</span>:{" "}
+            <a
+              href="mailto:ahmaduzzammasood@gmail.com"
+              className="text-[var(--accent)] hover:underline"
+            >
+              ahmaduzzammasood@gmail.com
+            </a>
+          </li>
+          <li>
+            <span className={STRONG}>GitHub</span>:{" "}
+            <a
+              href="https://github.com/azzammasood"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--accent)] hover:underline"
+            >
+              github.com/azzammasood
+            </a>
+          </li>
+        </ul>
+      </>
+    ),
+  },
   {
     id: "overview",
     label: "Overview",
@@ -35,7 +87,7 @@ const SECTIONS = [
         <p className={P}>
           LogicGate is a single source of truth for the business logic behind your data. Instead of a
           metric like &ldquo;monthly active revenue&rdquo; living in scattered SQL files, Slack
-          threads, and someone&rsquo;s head, you define it once — visually — and LogicGate keeps it
+          threads, and someone&rsquo;s head, you define it once, visually, and LogicGate keeps it
           versioned, reviewed, and compiled into runnable code for every team.
         </p>
         <p className={P}>
@@ -46,11 +98,11 @@ const SECTIONS = [
         </p>
         <h4 className={H4}>Core concepts</h4>
         <ul className={UL}>
-          <li><span className={STRONG}>Definition</span> — a named metric, rule, filter, or flag (e.g. &ldquo;Active Revenue&rdquo;). This is the unit you edit and publish.</li>
-          <li><span className={STRONG}>Condition</span> — a single filter row inside a definition (<code className="rounded bg-white/5 px-1">status = &quot;completed&quot;</code>). Conditions combine with AND/OR.</li>
-          <li><span className={STRONG}>Version</span> — an immutable snapshot created every time you publish, with a commit-style message.</li>
-          <li><span className={STRONG}>Change request</span> — a proposed edit that an approver must accept before it goes live.</li>
-          <li><span className={STRONG}>Workspace / organization</span> — the container that holds definitions, members, and settings.</li>
+          <li><span className={STRONG}>Definition</span>: a named metric, rule, filter, or flag (e.g. &ldquo;Active Revenue&rdquo;). This is the unit you edit and publish.</li>
+          <li><span className={STRONG}>Condition</span>: a single filter row inside a definition (<code className="rounded bg-white/5 px-1">status = &quot;completed&quot;</code>). Conditions combine with AND/OR.</li>
+          <li><span className={STRONG}>Version</span>: an immutable snapshot created every time you publish, with a commit-style message.</li>
+          <li><span className={STRONG}>Change request</span>: a proposed edit that an approver must accept before it goes live.</li>
+          <li><span className={STRONG}>Workspace / organization</span>: the container that holds definitions, members, and settings.</li>
         </ul>
         <h4 className={H4}>How the pieces fit</h4>
         <p className={P}>
@@ -73,28 +125,28 @@ const SECTIONS = [
           columns: the <strong className={STRONG}>list</strong> on the left (filter by Active /
           Deprecated / All and search), the <strong className={STRONG}>builder</strong> in the
           center, and the <strong className={STRONG}>pseudocode + history</strong> panel on the
-          right. Selecting a definition only swaps the center and right panels — the list keeps its
+          right. Selecting a definition only swaps the center and right panels, the list keeps its
           place.
         </p>
         <h4 className={H4}>The builder, section by section</h4>
         <ul className={UL}>
-          <li><span className={STRONG}>Source</span> — the table and the value/date columns the metric reads from (e.g. <code className="rounded bg-white/5 px-1">transactions</code>, <code className="rounded bg-white/5 px-1">amount_usd</code>, <code className="rounded bg-white/5 px-1">created_at</code>).</li>
-          <li><span className={STRONG}>Conditions</span> — the filter rows that decide which records count. Each row is a field, an operator, and a value, joined by AND/OR.</li>
-          <li><span className={STRONG}>Aggregation</span> — how rows collapse into a number: SUM, COUNT, COUNT DISTINCT, AVG…, plus the group-by period (e.g. calendar month) and optional dedupe key.</li>
-          <li><span className={STRONG}>Ownership</span> — the named owner responsible for the definition and an optional approver who signs off on changes.</li>
-          <li><span className={STRONG}>Documentation</span> — a plain-language explanation, saved with each published version and shown in the changelog.</li>
+          <li><span className={STRONG}>Source</span>: the table and the value/date columns the metric reads from (e.g. <code className="rounded bg-white/5 px-1">transactions</code>, <code className="rounded bg-white/5 px-1">amount_usd</code>, <code className="rounded bg-white/5 px-1">created_at</code>).</li>
+          <li><span className={STRONG}>Conditions</span>: the filter rows that decide which records count. Each row is a field, an operator, and a value, joined by AND/OR.</li>
+          <li><span className={STRONG}>Aggregation</span>: how rows collapse into a number: SUM, COUNT, COUNT DISTINCT, AVG…, plus the group-by period (e.g. calendar month) and optional dedupe key.</li>
+          <li><span className={STRONG}>Ownership</span>: the named owner responsible for the definition and an optional approver who signs off on changes.</li>
+          <li><span className={STRONG}>Documentation</span>: a plain-language explanation, saved with each published version and shown in the changelog.</li>
         </ul>
         <h4 className={H4}>Types &amp; status</h4>
         <p className={P}>
           A definition is a <span className={STRONG}>Metric</span> (a number), a{" "}
           <span className={STRONG}>Rule</span> (a policy), a <span className={STRONG}>Filter</span>{" "}
           (a reusable segment), or a <span className={STRONG}>Flag</span> (a boolean). When a
-          definition is retired, mark it <span className={STRONG}>Deprecated</span> in Settings — it
+          definition is retired, mark it <span className={STRONG}>Deprecated</span> in Settings, it
           stays for history but drops out of the default Active list.
         </p>
         <h4 className={H4}>Draft vs. published</h4>
         <p className={P}>
-          Your edits autosave continuously as a <em>draft</em> — nothing your teammates rely on
+          Your edits autosave continuously as a <em>draft</em>, nothing your teammates rely on
           changes yet. A draft only becomes the live definition when you press{" "}
           <strong className={STRONG}>Publish</strong> and write a message, exactly like a git commit.
           This is what keeps published logic stable while you experiment.
@@ -110,17 +162,17 @@ const SECTIONS = [
       <>
         <h3 className="text-lg font-semibold">Version control</h3>
         <p className={P}>
-          Every <strong className={STRONG}>Publish</strong> writes a new version — a complete JSON
+          Every <strong className={STRONG}>Publish</strong> writes a new version, a complete JSON
           snapshot of the definition, all its conditions, ownership, and documentation at that
           moment. Snapshots are stored in full (not as diffs), so any past state can be reconstructed
           exactly, even if the schema later changes.
         </p>
         <h4 className={H4}>What you can do with versions</h4>
         <ul className={UL}>
-          <li><span className={STRONG}>Changelog tab</span> — the list of published versions with author, timestamp, and message. Click a row to see what changed.</li>
-          <li><span className={STRONG}>Compare</span> — pick any two versions and see a field-by-field and condition-by-condition diff, with removed values struck through and added values highlighted.</li>
-          <li><span className={STRONG}>Restore</span> — replay an older snapshot. This doesn&rsquo;t erase history; it creates a <em>new</em> version equal to the old one, so the timeline stays intact.</li>
-          <li><span className={STRONG}>History</span> — a workspace-wide feed of every publish across all definitions.</li>
+          <li><span className={STRONG}>Changelog tab</span>: the list of published versions with author, timestamp, and message. Click a row to see what changed.</li>
+          <li><span className={STRONG}>Compare</span>: pick any two versions and see a field-by-field and condition-by-condition diff, with removed values struck through and added values highlighted.</li>
+          <li><span className={STRONG}>Restore</span>: replay an older snapshot. This doesn&rsquo;t erase history; it creates a <em>new</em> version equal to the old one, so the timeline stays intact.</li>
+          <li><span className={STRONG}>History</span>: a workspace-wide feed of every publish across all definitions.</li>
         </ul>
         <p className={P}>
           Because versions are immutable and append-only, &ldquo;who changed this metric, when, and
@@ -138,16 +190,16 @@ const SECTIONS = [
         <h3 className="text-lg font-semibold">Change requests &amp; approvals</h3>
         <p className={P}>
           When a definition has a designated approver (or your workspace requires approval before
-          publishing), edits don&rsquo;t go live directly — they become a{" "}
+          publishing), edits don&rsquo;t go live directly, they become a{" "}
           <strong className={STRONG}>change request</strong> that must be reviewed first. This is how
           LogicGate enforces that sensitive metrics can&rsquo;t silently change.
         </p>
         <h4 className={H4}>The flow</h4>
         <ul className={UL}>
-          <li><span className={STRONG}>Propose</span> — the editor makes changes and submits them with a written reason (workspaces can require a minimum length so &ldquo;fix&rdquo; isn&rsquo;t enough).</li>
-          <li><span className={STRONG}>Notify</span> — the approver sees it under <strong className={STRONG}>Reviews</strong> in the sidebar, with a badge count of what&rsquo;s pending for them.</li>
-          <li><span className={STRONG}>Review</span> — the approver compares the proposed snapshot against the current one, then approves or requests changes with a note.</li>
-          <li><span className={STRONG}>Publish</span> — on approval the change is published as a new version, attributed to both the requester and the approver.</li>
+          <li><span className={STRONG}>Propose</span>: the editor makes changes and submits them with a written reason (workspaces can require a minimum length so &ldquo;fix&rdquo; isn&rsquo;t enough).</li>
+          <li><span className={STRONG}>Notify</span>: the approver sees it under <strong className={STRONG}>Reviews</strong> in the sidebar, with a badge count of what&rsquo;s pending for them.</li>
+          <li><span className={STRONG}>Review</span>: the approver compares the proposed snapshot against the current one, then approves or requests changes with a note.</li>
+          <li><span className={STRONG}>Publish</span>: on approval the change is published as a new version, attributed to both the requester and the approver.</li>
         </ul>
         <p className={P}>
           A definition being edited shows a <span className={STRONG}>Pending change</span> banner in
@@ -171,10 +223,10 @@ const SECTIONS = [
         </p>
         <h4 className={H4}>Profile roles</h4>
         <div className="mt-2 space-y-2 text-sm text-[var(--fg-muted)]">
-          <p><span className={STRONG}>Engineer</span> — creates and edits definitions and can approve changes. The default for hands-on data builders.</p>
-          <p><span className={STRONG}>Architect</span> — same capabilities as Engineer, intended for whoever owns data architecture and standards.</p>
-          <p><span className={STRONG}>Analyst</span> — edits definitions they own and submits change requests for others.</p>
-          <p><span className={STRONG}>Stakeholder</span> — edits owned definitions and requests reviews from approvers; typically business owners of a metric.</p>
+          <p><span className={STRONG}>Engineer</span>: creates and edits definitions and can approve changes. The default for hands-on data builders.</p>
+          <p><span className={STRONG}>Architect</span>: same capabilities as Engineer, intended for whoever owns data architecture and standards.</p>
+          <p><span className={STRONG}>Analyst</span>: edits definitions they own and submits change requests for others.</p>
+          <p><span className={STRONG}>Stakeholder</span>: edits owned definitions and requests reviews from approvers; typically business owners of a metric.</p>
         </div>
         <h4 className={H4}>Workspace roles</h4>
         <p className={P}>
@@ -194,16 +246,16 @@ const SECTIONS = [
       <>
         <h3 className="text-lg font-semibold">Auto-compiled pseudocode</h3>
         <p className={P}>
-          As you edit, LogicGate compiles the definition into runnable code in the right-hand panel —
+          As you edit, LogicGate compiles the definition into runnable code in the right-hand panel,
           live, on every change. The definition is the source of truth; the code is generated from
           it, so the two never drift apart.
         </p>
         <h4 className={H4}>Formats</h4>
         <ul className={UL}>
-          <li><span className={STRONG}>Generic</span> — human-readable pseudocode for stakeholders, auditors, and review.</li>
-          <li><span className={STRONG}>SQL</span> — a valid <code className="rounded bg-white/5 px-1">SELECT</code> ready to paste into your warehouse.</li>
-          <li><span className={STRONG}>Python</span> — a typed pandas function with the same filters and aggregation.</li>
-          <li><span className={STRONG}>dbt</span> — a model with jinja and <code className="rounded bg-white/5 px-1">ref()</code> wired to your source table.</li>
+          <li><span className={STRONG}>Generic</span>: human-readable pseudocode for stakeholders, auditors, and review.</li>
+          <li><span className={STRONG}>SQL</span>: a valid <code className="rounded bg-white/5 px-1">SELECT</code> ready to paste into your warehouse.</li>
+          <li><span className={STRONG}>Python</span>: a typed pandas function with the same filters and aggregation.</li>
+          <li><span className={STRONG}>dbt</span>: a model with jinja and <code className="rounded bg-white/5 px-1">ref()</code> wired to your source table.</li>
         </ul>
         <p className={P}>
           Switching formats recompiles in place without disturbing the panel. Use{" "}
@@ -224,7 +276,7 @@ const SECTIONS = [
         <p className={P}>
           A <strong className={STRONG}>workspace</strong> (organization) is where your definitions,
           members, and settings live. You can belong to several and switch between them from the rail
-          on the far left — switching re-scopes the whole app to that org.
+          on the far left, switching re-scopes the whole app to that org.
         </p>
         <h4 className={H4}>Personal vs. organization</h4>
         <p className={P}>
@@ -235,7 +287,7 @@ const SECTIONS = [
         <h4 className={H4}>Joining &amp; the name lock</h4>
         <ul className={UL}>
           <li>Create a new org, or <span className={STRONG}>join an existing one</span> with an invite link during setup.</li>
-          <li>Everything about an org stays editable after creation — icon, description, and workflow settings — under <strong className={STRONG}>Configuration</strong>.</li>
+          <li>Everything about an org stays editable after creation, icon, description, and workflow settings, under <strong className={STRONG}>Configuration</strong>.</li>
           <li>The one exception: once other members have joined, the <span className={STRONG}>organization name is locked</span>, so a rename can&rsquo;t confuse the rest of the team.</li>
         </ul>
         <h4 className={H4}>Workflow settings</h4>
@@ -280,7 +332,7 @@ export function DocsDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [section, setSection] = useState<SectionId>("overview");
+  const [section, setSection] = useState<SectionId>("about");
   const active = SECTIONS.find((s) => s.id === section) ?? SECTIONS[0];
 
   return (

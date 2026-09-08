@@ -27,12 +27,12 @@ import {
 import { cn } from "@/lib/utils";
 
 const pages = [
-  { href: "/app/dashboard", label: "Overview", icon: LayoutDashboard },
+  { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/app/definitions", label: "Definitions", icon: FileText },
-  { href: "/app/changes", label: "Reviews", icon: GitPullRequest },
+  { href: "/app/reviews", label: "Reviews", icon: GitPullRequest },
   { href: "/app/pseudocodes", label: "Pseudocodes", icon: Code2 },
   { href: "/app/discussions", label: "Discussions", icon: MessageSquare },
-  { href: "/app/settings", label: "Configuration", icon: Settings },
+  { href: "/app/settings", label: "Settings", icon: Settings },
 ];
 
 /** Dispatch on `window` to open the palette without a keypress. */

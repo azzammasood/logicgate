@@ -375,7 +375,7 @@ export function SeeItInActionSection() {
                   background: "var(--bg)",
                   border: "1px solid var(--border)",
                   borderRadius: 7,
-                  padding: "20px 22px",
+                  padding: "16px 18px",
                 }}
               >
                 <CompileOutputPanel

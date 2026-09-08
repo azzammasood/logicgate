@@ -128,7 +128,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-lg border border-white/10 bg-[#161920] p-6">
+    <div className="lg-auth-enter w-full max-w-md rounded-lg border border-white/10 bg-[#161920] p-6">
       <AnimatedLogo size={52} animateOnHover className="mb-4" />
       <h1 className="font-[family-name:var(--font-auth-mono)] text-2xl font-bold text-[#4ade80]">
         LogicGate

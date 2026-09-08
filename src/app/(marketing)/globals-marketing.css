@@ -1281,8 +1281,8 @@
 .compile-output-wrap {
   position: relative;
   /* Fixed height so switching formats never resizes the box (which shifted the
-     whole section). Content scrolls inside instead. */
-  height: 340px;
+     whole section). Sized to the tallest format so nothing clips or scrolls. */
+  height: 258px;
 }
 
 .compile-output-loading {
@@ -1426,13 +1426,15 @@
 
 .compile-output-content {
   margin: 0;
-  height: 340px;
-  font-size: 12.5px;
-  line-height: 1.85;
-  /* Keep original code formatting (no reflow) and scroll within the fixed box,
-     so Python/dbt read cleanly instead of wrapping into a dense block. */
-  white-space: pre;
-  overflow: auto;
+  height: 258px;
+  font-size: 12px;
+  line-height: 1.7;
+  /* Preserve indentation; wrap only the rare over-long line at word boundaries
+     so there's never a horizontal scrollbar, and never a dense reflow. */
+  white-space: pre-wrap;
+  overflow-wrap: normal;
+  word-break: normal;
+  overflow: hidden;
   tab-size: 4;
   opacity: 0.38;
   filter: blur(2px);

@@ -348,14 +348,14 @@ export default function DashboardPage() {
               label="Pending reviews"
               value={stats.pending}
               accent="bg-amber-500/15 text-amber-400"
-              href="/app/changes"
+              href="/app/reviews"
             />
             <StatCard
               icon={Clock}
               label="Awaiting your review"
               value={stats.mine}
               accent="bg-purple-500/15 text-purple-400"
-              href="/app/changes?view=assigned"
+              href="/app/reviews?view=assigned"
             />
           </div>
 

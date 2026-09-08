@@ -210,7 +210,7 @@ export function NotificationsButton({ collapsed }: { collapsed?: boolean }) {
                     <div className="mt-4 flex flex-wrap gap-4">
                       {isApproval && (
                         <Link
-                          href="/app/changes?view=assigned"
+                          href="/app/reviews?view=assigned"
                           className="text-xs text-[var(--accent)] hover:underline"
                           onClick={() => setOpen(false)}
                         >

@@ -126,6 +126,19 @@
   animation: app-page-in 0.26s ease-out;
 }
 
+/* Auth cards ease in on mount so navigating Get started / between sign in and
+   sign up isn't an instant jarring swap. */
+@keyframes lg-auth-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+.lg-auth-enter {
+  animation: lg-auth-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lg-auth-enter { animation: none; }
+}
+
 /* Side-scrolling swap for the pseudocode preview when the language changes. */
 @keyframes lg-pseudo-slide-in {
   from {

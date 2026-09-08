@@ -80,7 +80,7 @@ export function DefinitionsTopBar() {
                 title={`Version ${definition.currentVersion} · ${meta.label}`}
               >
                 <span
-                  className="lg-pulse-dot h-1.5 w-1.5 rounded-full"
+                  className="h-1.5 w-1.5 rounded-full"
                   style={{ background: meta.color }}
                 />
                 v{definition.currentVersion} — <span style={{ color: meta.color }}>{meta.label}</span>

@@ -6,9 +6,9 @@ import { cn } from "@/lib/utils";
 import { UserProfileMenu } from "@/components/layout/UserProfileMenu";
 
 const items = [
-  { href: "/app/dashboard", label: "Overview" },
+  { href: "/app/dashboard", label: "Dashboard" },
   { href: "/app/definitions", label: "Definitions" },
-  { href: "/app/team", label: "Team" },
+  { href: "/app/stakeholders", label: "Stakeholders" },
   { href: "/app/settings", label: "Settings" },
 ];
 

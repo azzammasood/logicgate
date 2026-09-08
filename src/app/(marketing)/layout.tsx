@@ -3,6 +3,7 @@ import { JetBrains_Mono } from "next/font/google";
 import { Navbar } from "@/components/marketing/Navbar";
 import { Footer } from "@/components/marketing/Footer";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
+import { OAuthCodeCatcher } from "@/components/auth/OAuthCodeCatcher";
 import "./globals-marketing.css";
 
 // Terminal-style typeface used across the whole landing page — body, headings,
@@ -31,6 +32,7 @@ export default function MarketingLayout({
       <div
         className={`marketing-root ${jetbrainsMono.variable} ${jetbrainsMono.className}`}
       >
+        <OAuthCodeCatcher />
         <div className="grid-overlay" aria-hidden="true" />
         <div className="marketing-shell">
           <Navbar />

@@ -205,7 +205,7 @@ export default function SignupPage() {
   if (verificationEmail) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[var(--background,#0d0f14)] px-4">
-        <div className="w-full max-w-md rounded-lg border border-white/10 bg-[var(--surface,#161920)] p-8 text-center">
+        <div className="lg-auth-enter w-full max-w-md rounded-lg border border-white/10 bg-[var(--surface,#161920)] p-8 text-center">
           <AnimatedLogo size={72} className="mx-auto mb-6" />
           <h1 className="font-[family-name:var(--font-auth-mono)] text-2xl font-bold text-[var(--accent,#4ade80)]">
             Verify your email
@@ -256,7 +256,7 @@ export default function SignupPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[var(--background,#0d0f14)] px-4 py-6">
-      <div className="w-full max-w-md rounded-lg border border-white/10 bg-[var(--surface,#161920)] p-6">
+      <div className="lg-auth-enter w-full max-w-md rounded-lg border border-white/10 bg-[var(--surface,#161920)] p-6">
         <AnimatedLogo size={52} animateOnHover className="mb-4" />
         <h1 className="font-[family-name:var(--font-auth-mono)] text-2xl font-bold text-[var(--accent,#4ade80)]">
           Create account

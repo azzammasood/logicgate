@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Zap, X } from "lucide-react";
 import { useAiStore } from "@/stores/ai";
 import { useUiStore } from "@/stores/ui";
@@ -11,9 +12,10 @@ import { useUiStore } from "@/stores/ui";
 export function AiKeyBanner() {
   const apiKey = useAiStore((s) => s.apiKey);
   const baseUrl = useAiStore((s) => s.baseUrl);
-  const dismissed = useAiStore((s) => s.bannerDismissed);
-  const dismiss = useAiStore((s) => s.dismissBanner);
   const openPreferences = useUiStore((s) => s.openPreferences);
+  // Dismissal is per-session (component state) so the banner returns on refresh
+  // until a key is actually configured.
+  const [dismissed, setDismissed] = useState(false);
 
   const available = apiKey.trim().length > 0 || baseUrl.trim().length > 0;
   if (available || dismissed) return null;
@@ -22,11 +24,10 @@ export function AiKeyBanner() {
     <div className="flex items-center gap-3 border-b border-amber-500/25 bg-amber-500/[0.08] px-4 py-2 text-xs text-amber-100/90">
       <Zap className="h-4 w-4 shrink-0 text-amber-400" />
       <p className="min-w-0 flex-1 leading-relaxed">
-        <span className="font-medium text-amber-200">AI is optional</span>
+        <span className="font-medium text-amber-200">Add AI superpowers</span>
         {" — "}
-        add a free OpenRouter key to turn plain English into definitions, draft
-        change summaries, and generate documentation. Everything else works
-        without it.
+        a free OpenRouter key turns plain English into definitions, drafts your
+        change summaries, and writes documentation for you.
       </p>
       <button
         type="button"
@@ -45,7 +46,7 @@ export function AiKeyBanner() {
       </a>
       <button
         type="button"
-        onClick={dismiss}
+        onClick={() => setDismissed(true)}
         aria-label="Dismiss"
         className="shrink-0 rounded p-1 text-amber-200/60 transition-colors hover:bg-amber-500/10 hover:text-amber-100"
       >

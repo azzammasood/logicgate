@@ -37,9 +37,9 @@ const navSections: { title: string; items: NavItem[] }[] = [
   {
     title: "Workspace",
     items: [
-      { href: "/app/dashboard", label: "Overview", icon: LayoutDashboard },
+      { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { href: "/app/definitions", label: "Definitions", icon: FileText, badgeKey: "definitions", badgeTone: "muted" },
-      { href: "/app/changes", label: "Reviews", icon: GitPullRequest, badgeKey: "reviews", badgeTone: "amber" },
+      { href: "/app/reviews", label: "Reviews", icon: GitPullRequest, badgeKey: "reviews", badgeTone: "amber" },
       { href: "/app/pseudocodes", label: "Pseudocodes", icon: Code2 },
     ],
   },
@@ -47,13 +47,13 @@ const navSections: { title: string; items: NavItem[] }[] = [
     title: "Collaboration",
     items: [
       { href: "/app/discussions", label: "Discussions", icon: MessageSquare },
-      { href: "/app/team", label: "Stakeholders", icon: Users },
+      { href: "/app/stakeholders", label: "Stakeholders", icon: Users },
     ],
   },
   {
     title: "Admin",
     items: [
-      { href: "/app/settings", label: "Configuration", icon: SlidersHorizontal },
+      { href: "/app/settings", label: "Settings", icon: SlidersHorizontal },
       { href: "/app/settings/integrations", label: "Integrations", icon: Plug },
     ],
   },
@@ -203,12 +203,11 @@ function NavContent({
         <button
           type="button"
           onClick={() => window.dispatchEvent(new Event(OPEN_PALETTE_EVENT))}
-          className="mx-[18px] mb-3 mt-auto flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-[var(--background,#0d0f14)] px-3 py-2.5 text-left transition-colors hover:border-white/20 hover:bg-white/5"
+          aria-label="Search and commands"
+          title="Search & commands"
+          className="mx-[18px] mb-3 mt-auto flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-[var(--background,#0d0f14)] px-3 py-2.5 transition-colors hover:border-white/20 hover:bg-white/5"
         >
-          <span className="flex items-center gap-2 text-[13px] text-white/55">
-            <Search className="h-4 w-4 shrink-0" />
-            Search &amp; commands
-          </span>
+          <Search className="h-4 w-4 shrink-0 text-white/55" />
           <kbd className="shrink-0 rounded border border-white/15 bg-white/5 px-1.5 py-0.5 font-[family-name:var(--app-font)] text-[11px] text-white/60">
             Ctrl K
           </kbd>

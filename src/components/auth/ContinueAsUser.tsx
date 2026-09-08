@@ -28,7 +28,7 @@ export function ContinueAsUser({ user }: { user: SessionUser }) {
   }
 
   return (
-    <div className="w-full max-w-md rounded-lg border border-white/10 bg-[var(--surface,#161920)] p-8 text-center">
+    <div className="lg-auth-enter w-full max-w-md rounded-lg border border-white/10 bg-[var(--surface,#161920)] p-8 text-center">
       <AnimatedLogo size={72} className="mx-auto mb-6" />
       <h1 className="font-[family-name:var(--font-auth-mono)] text-2xl font-bold text-[var(--accent,#4ade80)]">
         Welcome back, {firstName}
