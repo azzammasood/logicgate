@@ -73,6 +73,17 @@ const SECTIONS = [
               github.com/azzammasood
             </a>
           </li>
+          <li>
+            <span className={STRONG}>LinkedIn</span>:{" "}
+            <a
+              href="https://www.linkedin.com/in/azzammasood"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--accent)] hover:underline"
+            >
+              linkedin.com/in/azzammasood
+            </a>
+          </li>
         </ul>
       </>
     ),
