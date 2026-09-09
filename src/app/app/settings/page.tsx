@@ -139,11 +139,17 @@ export default function SettingsPage() {
         <TabsContent value="general" className="lg-fade-up max-w-xl space-y-5 p-6">
           <div className="space-y-2">
             <label className="text-xs text-white/50">Workspace name</label>
+            {/* Set once at creation and permanently locked — the name is a
+                stable identifier the whole team relies on. */}
             <Input
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="bg-[#161920]"
+              readOnly
+              disabled
+              className="bg-[#161920] disabled:cursor-not-allowed disabled:opacity-60"
             />
+            <p className="text-[11px] text-white/35">
+              The organization name is set at creation and can&apos;t be changed.
+            </p>
           </div>
           <div className="space-y-2">
             <label className="text-xs text-white/50">Description</label>

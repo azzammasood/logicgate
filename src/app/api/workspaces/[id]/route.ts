@@ -52,6 +52,10 @@ export async function PATCH(request: Request, { params }: Params) {
 
     const data = { ...parsed.data };
 
+    // The organization name is permanent once created — never accept a rename,
+    // regardless of what the client sends.
+    delete data.name;
+
     const updated = await prisma.workspace.update({
       where: { id },
       data: {

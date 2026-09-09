@@ -298,7 +298,7 @@ const SECTIONS = [
         <h4 className={H4}>Joining &amp; the name lock</h4>
         <ul className={UL}>
           <li>Create a new org, or <span className={STRONG}>join an existing one</span> with an invite link during setup.</li>
-          <li>Everything about an org stays editable after creation, icon, description, and workflow settings, under <strong className={STRONG}>Configuration</strong>.</li>
+          <li>The icon, description, and workflow settings stay editable under <strong className={STRONG}>Configuration</strong>. The <span className={STRONG}>name is set once at creation and can&rsquo;t be changed</span>, since the whole team relies on it as a stable identifier.</li>
           
         </ul>
         <h4 className={H4}>Workflow settings</h4>
