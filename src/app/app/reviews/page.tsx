@@ -133,6 +133,7 @@ export default function ReviewsPage() {
       return (json.data ?? []) as ChangeRequestRow[];
     },
     enabled: !!workspaceId && (view === "all" || !!currentUser?.id),
+    staleTime: 30_000,
   });
 
   const statusColor: Record<string, string> = {

@@ -299,7 +299,7 @@ const SECTIONS = [
         <ul className={UL}>
           <li>Create a new org, or <span className={STRONG}>join an existing one</span> with an invite link during setup.</li>
           <li>Everything about an org stays editable after creation, icon, description, and workflow settings, under <strong className={STRONG}>Configuration</strong>.</li>
-          <li>The one exception: once other members have joined, the <span className={STRONG}>organization name is locked</span>, so a rename can&rsquo;t confuse the rest of the team.</li>
+          
         </ul>
         <h4 className={H4}>Workflow settings</h4>
         <p className={P}>

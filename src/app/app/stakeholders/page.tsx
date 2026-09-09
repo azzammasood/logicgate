@@ -40,6 +40,7 @@ export default function TeamPage() {
       return json.data ?? [];
     },
     enabled: !!workspaceId,
+    staleTime: 60_000,
   });
 
   const inviteMutation = useMutation({
@@ -71,6 +72,7 @@ export default function TeamPage() {
       return { forbidden: false, inviteCode: (json.data?.inviteCode ?? null) as string | null };
     },
     enabled: !!workspaceId,
+    staleTime: 60_000,
   });
   const canManage = inviteData ? !inviteData.forbidden : false;
   const inviteCode = inviteData?.inviteCode ?? null;

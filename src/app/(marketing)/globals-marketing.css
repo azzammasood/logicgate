@@ -175,7 +175,7 @@
 
 .marketing-footer {
   border-top: 1px solid var(--border);
-  padding: 48px 44px 40px;
+  padding: 48px 0 40px;
 }
 
 .marketing-footer-grid {
@@ -184,6 +184,8 @@
   gap: 40px;
   max-width: 1060px;
   margin: 0 auto;
+  padding: 0 40px;
+  box-sizing: border-box;
 }
 
 .marketing-footer-brand {
@@ -224,7 +226,8 @@
   gap: 16px;
   max-width: 1060px;
   margin: 36px auto 0;
-  padding-top: 24px;
+  padding: 24px 40px 0;
+  box-sizing: border-box;
   border-top: 1px solid var(--border);
 }
 
@@ -263,7 +266,13 @@
   }
 
   .marketing-footer {
-    padding: 40px 24px 32px;
+    padding: 40px 0 32px;
+  }
+  .marketing-footer-grid {
+    padding: 0 24px;
+  }
+  .marketing-footer-bottom {
+    padding: 24px 24px 0;
   }
 
   .marketing-legal-page {

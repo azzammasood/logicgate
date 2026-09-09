@@ -35,6 +35,7 @@ export default function DiscussionsPage() {
       return (json.data ?? []) as DiscussionThread[];
     },
     enabled: !!workspaceId,
+    staleTime: 60_000,
   });
 
   return (

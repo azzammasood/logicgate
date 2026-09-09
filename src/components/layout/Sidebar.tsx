@@ -132,7 +132,7 @@ function NavContent({
             <p className="truncate font-[family-name:var(--font-display)] text-base font-extrabold leading-tight tracking-[-0.3px] text-white">
               LogicGate
             </p>
-            <p className="text-[11px] leading-snug tracking-[0.5px] text-white/35">
+            <p className="whitespace-nowrap text-[11px] leading-snug tracking-[0.5px] text-white/35">
               Data Definition Layer
             </p>
           </div>

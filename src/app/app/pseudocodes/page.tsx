@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Download, ChevronDown, Check, Copy } from "lucide-react";
 import { Topbar } from "@/components/layout/Topbar";
@@ -26,7 +26,7 @@ const FORMATS = [
 
 type FormatId = (typeof FORMATS)[number]["id"];
 
-type DefinitionRow = { id: string; name: string; type: string; slug: string };
+type DefinitionRow = { id: string; name: string; type: string; slug: string; status: string };
 
 export default function PseudocodesPage() {
   const workspaceId = useWorkspaceStore((s) => s.currentWorkspaceId);
@@ -34,7 +34,7 @@ export default function PseudocodesPage() {
   const [exporting, setExporting] = useState(false);
   const [previewDef, setPreviewDef] = useState<DefinitionRow | null>(null);
 
-  const { data: definitions = [], isLoading } = useQuery({
+  const { data: allDefinitions = [], isLoading } = useQuery({
     queryKey: ["definitions", workspaceId],
     queryFn: async () => {
       const res = await fetch(`/api/definitions?workspaceId=${workspaceId}`);
@@ -42,7 +42,15 @@ export default function PseudocodesPage() {
       return (json.data ?? []) as DefinitionRow[];
     },
     enabled: !!workspaceId,
+    staleTime: 60_000,
   });
+
+  // Pseudocode export only makes sense for live definitions; deprecated ones are
+  // hidden here (they still exist in history under Definitions).
+  const definitions = useMemo(
+    () => allDefinitions.filter((d) => d.status !== "DEPRECATED"),
+    [allDefinitions]
+  );
 
   const toggleCheck = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -119,7 +127,8 @@ export default function PseudocodesPage() {
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-white/50">
-            Click a definition to preview pseudocode. Use checkboxes to select items for export.
+            Showing active definitions only. Click one to preview its pseudocode; use the
+            checkboxes to select items for export.
           </p>
           <Button variant="outline" size="sm" className="border-white/10" onClick={toggleAll}>
             {selected.size === definitions.length && definitions.length > 0

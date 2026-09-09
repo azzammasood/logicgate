@@ -63,10 +63,6 @@ export default function SettingsPage() {
     return [...documentedTables, ...detected.values()];
   }, [documentedTables, definitions]);
 
-  // The organization name is locked once other members have joined — renaming
-  // it would be confusing for everyone else on the team.
-  const memberCount = workspace?.members?.length ?? 1;
-  const nameLocked = memberCount > 1;
 
   useEffect(() => {
     if (workspace) {
@@ -146,16 +142,8 @@ export default function SettingsPage() {
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              disabled={nameLocked}
-              className="bg-[#161920] disabled:cursor-not-allowed disabled:opacity-60"
+              className="bg-[#161920]"
             />
-            {nameLocked && (
-              <p className="text-[11px] text-white/35">
-                The name is locked because {memberCount - 1} other{" "}
-                {memberCount - 1 === 1 ? "member has" : "members have"} joined.
-                Everything else stays editable.
-              </p>
-            )}
           </div>
           <div className="space-y-2">
             <label className="text-xs text-white/50">Description</label>
