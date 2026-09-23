@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Mono, JetBrains_Mono, Syne } from "next/font/google";
+import { DM_Mono, Instrument_Serif, JetBrains_Mono, Syne } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AppearanceProvider } from "@/components/providers/AppearanceProvider";
@@ -36,6 +36,17 @@ const authMono = JetBrains_Mono({
   preload: false,
 });
 
+// Serif used for the stakeholder reasons quoted on the dashboard's version
+// drawer — the one place the app quotes a person rather than showing data.
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  display: "swap",
+  preload: false,
+});
+
 export const metadata: Metadata = {
   title: "LogicGate",
   description: "Define metrics and business rules with accountability",
@@ -47,7 +58,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" style={{ colorScheme: "dark" }}>
       <body
-        className={`${dmMono.variable} ${syne.variable} ${authMono.variable} min-h-screen`}
+        className={`${dmMono.variable} ${syne.variable} ${authMono.variable} ${instrumentSerif.variable} min-h-screen`}
       >
         <QueryProvider>
           <AppearanceProvider>

@@ -86,7 +86,7 @@ function formatConditionGeneric(c: CompilerInput["conditions"][0], indent: strin
   }
 }
 
-function formatConditionSQL(c: CompilerInput["conditions"][0]): string {
+export function formatConditionSQL(c: CompilerInput["conditions"][0]): string {
   if (!VALID_OPERATORS.has(c.operator)) return `-- skipped invalid operator: ${c.operator}`;
   const v = parseValue(c.value, c.valueType);
   const field = c.field;

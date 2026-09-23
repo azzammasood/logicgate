@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<!--
+================================================================================
+  LOGICGATE — DRIFT DASHBOARD · DESIGN REFERENCE FOR CLAUDE CODE
+================================================================================
+
+  PURPOSE
+  This file is the visual and behavioral source of truth for the Dashboard page
+  (route: /app or /app/dashboard). Match layout, spacing, typography, colors and
+  interactions exactly. The data here is mock; wire every value to real data.
+
+  CONCEPT
+  "Drift" shows how data definitions change over time. Each definition is a
+  horizontal lane on a time axis; each shipped version is a dot on that lane.
+  Long quiet lanes = trustworthy definitions. Clusters of dots = volatile logic.
+
+  DESIGN TOKENS (use as CSS variables / Tailwind theme)
+    --bg #080a0f   --bg1 #0d0f16   --bg2 #12151e   --bg3 #181c27
+    --b rgba(255,255,255,.07)      --b2 rgba(255,255,255,.12)
+    --g #4ade80 (accent)  --g2 #22c55e (hover)  --g3 rgba(74,222,128,.12)
+    --blue #60a5fa  --pur #a78bfa  --amb #fbbf24  --red #f87171
+    --t #eef0f6 (text)  --t2 #8892a4 (secondary)  --t3 #4a5268 (muted)
+  Type colors: metric=blue, rule=purple, filter=amber, flag=red (same as app).
+  Stability colors: settled=green, shifting=purple, volatile=amber,
+                    in review=amber (dashed dot), retired=muted gray.
+
+  FONTS
+    Headings/numbers: Satoshi (Fontshare) 700/900, tight letter-spacing
+    Body/UI:          Inter 400/500/600
+    Code/data/labels: JetBrains Mono 400/500
+    Stakeholder quotes (reasons): Instrument Serif italic
+
+  PAGE STRUCTURE (top → bottom)
+    1. Workspace rail (56px) + Sidebar (236px) — reuse existing app shell
+    2. AI banner (existing component, dismissible)
+    3. Page header: "Dashboard" + "New definition" button
+    4. Hero: eyebrow, headline with computed change count, 4 KPI tiles
+    5. Toolbar: range (4w/12w/6m), type chips, sort, search, "show retired"
+    6. Drift card: weekly activity bars (aligned to lane axis) + lanes
+    7. Bottom row: "Who moves the logic" | "Worth a conversation" | "Recently signed off"
+    8. Version drawer (right side) opens when a version dot is clicked
+
+  DATA SHAPE (per definition) — map from Prisma Definition + DefinitionVersion
+    { id, name, type: 'metric'|'rule'|'filter'|'flag', domain, owner,
+      status: 'published'|'pending'|'deprecated'|'draft',
+      versions: [{ v, date(ISO), author, approver|null, reason,
+                   kind: 'create'|'edit'|'restore'|'retire'|'pending',
+                   removed: [string], added: [string], outputs: [string] }] }
+
+  COMPUTED VALUES (implement server-side or in a hook)
+    - Lane x position:  (version.date - rangeStart) / (now - rangeStart) * 100%
+      Versions before rangeStart are hidden; the lane line starts at 0%.
+    - Stability label (first match wins):
+        status deprecated         → "retired"
+        has pending version       → "in review"
+        versions in range >= 4    → "volatile"
+        days since last ship >= 45→ "settled"
+        otherwise                 → "shifting"
+    - KPI "Versions shipped": count of non-pending versions in range
+    - KPI "Definitions changed": definitions with >= 1 version in range
+    - KPI "With a written reason": % of versions with non-empty reason
+    - KPI "Median sign-off": median(approvedAt - proposedAt) for approved CRs
+    - Weekly bars: shipped versions per week, same axis as lanes
+    - Headline: "Your definitions changed {N} times in the last {range}."
+    - "Worth a conversation" insights: volatile definitions, definitions whose
+      conditions reference the same field with different values, long-settled
+      definitions (safe to build on). Show max 3.
+
+  INTERACTIONS
+    - Hover dot → tooltip (version, author, date). Dot scales 1.35x.
+    - Click dot → drawer slides in from right (420px), overlay behind it,
+      Esc or overlay click closes. Drawer shows reason quote, diff, sign-off,
+      affected compiled outputs, "Open definition" and "Compare with current".
+    - Hover lane → subtle row highlight; click lane name → definition page.
+    - Range / type / sort / search / retired toggle re-render lanes instantly.
+    - No results → empty state inside the lanes card.
+    - Pending versions render as dashed, blinking dots at their proposal date.
+    - Vertical "Today" line at the right edge of the axis.
+
+  RESPONSIVE
+    <1100px: sidebar collapses (existing behavior), bottom row stacks,
+    lane label column shrinks to 170px, stability column hides.
+================================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard · LogicGate</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@500,700,900&display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080a0f;--bg1:#0d0f16;--bg2:#12151e;--bg3:#181c27;
+  --b:rgba(255,255,255,.07);--b2:rgba(255,255,255,.12);
+  --g:#4ade80;--g2:#22c55e;--g3:rgba(74,222,128,.12);--g4:rgba(74,222,128,.06);
+  --blue:#60a5fa;--pur:#a78bfa;--amb:#fbbf24;--red:#f87171;
+  --t:#eef0f6;--t2:#8892a4;--t3:#4a5268;
+  --sat:'Satoshi',sans-serif;--mono:'JetBrains Mono',monospace;--serif:'Instrument Serif',serif;
+  --label-w:240px;--stab-w:150px;
+}
+html,body{background:var(--bg);color:var(--t);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select{font-family:inherit}
+.app{display:flex;min-height:100vh}
+
+/* ---------- workspace rail ---------- */
+.rail{width:56px;flex-shrink:0;background:#07090d;border-right:1px solid var(--b);display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 0;position:sticky;top:0;height:100vh}
+.ws{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:var(--bg2);color:var(--t2);border:1px solid var(--b);cursor:pointer}
+.ws.on{background:var(--g3);color:var(--g);border-color:rgba(74,222,128,.4)}
+.ws.add{border-style:dashed;color:var(--t3);font-size:16px}
+
+/* ---------- sidebar ---------- */
+.side{width:236px;flex-shrink:0;background:var(--bg1);border-right:1px solid var(--b);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.logo{display:flex;align-items:center;gap:10px;padding:18px;border-bottom:1px solid var(--b)}
+.logo b{font-family:var(--sat);font-weight:700;font-size:16px;display:block;letter-spacing:-.2px}
+.logo span{font-size:11px;color:var(--t3)}
+.navlbl{font-size:10px;letter-spacing:1.4px;color:var(--t3);padding:18px 20px 6px;text-transform:uppercase;font-weight:600}
+.nav a{display:flex;align-items:center;gap:10px;padding:8px 20px;font-size:13.5px;color:var(--t2);text-decoration:none;border-left:2px solid transparent;transition:color .15s,background .15s}
+.nav a i{font-size:17px}
+.nav a:hover{color:var(--t);background:rgba(255,255,255,.025)}
+.nav a.on{color:var(--g);background:var(--g4);border-left-color:var(--g)}
+.cnt{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--t3);background:var(--bg3);padding:1px 7px;border-radius:10px}
+.cnt.hot{color:var(--amb);background:rgba(251,191,36,.12)}
+.side-bottom{margin-top:auto}
+.search{margin:12px 16px;display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--b);border-radius:9px;color:var(--t3);font-size:12.5px;cursor:pointer}
+.search kbd{margin-left:auto;font-family:var(--mono);font-size:10px;border:1px solid var(--b2);border-radius:4px;padding:1px 5px}
+.ai-state{display:flex;align-items:center;gap:7px;padding:10px 20px;font-size:11.5px;color:var(--t3);border-top:1px solid var(--b)}
+.ai-state i{width:6px;height:6px;border-radius:50%;background:var(--t3)}
+.me{border-top:1px solid var(--b);padding:14px 16px;display:flex;align-items:center;gap:10px}
+.me b{font-size:13px;font-weight:500;display:block}
+.me span{font-size:11px;color:var(--g)}
+.me .ti-bell{margin-left:auto;color:var(--t3);font-size:18px}
+.av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;flex-shrink:0;
+  background:color-mix(in srgb,var(--c,#4ade80) 14%,transparent);color:var(--c,#4ade80);border:1px solid color-mix(in srgb,var(--c,#4ade80) 35%,transparent)}
+
+/* ---------- main ---------- */
+main{flex:1;min-width:0}
+.banner{display:flex;align-items:center;gap:12px;padding:10px 28px;background:rgba(251,191,36,.06);border-bottom:1px solid rgba(251,191,36,.18);font-size:13px;color:#e9d9a6}
+.banner i{color:var(--amb);font-size:16px}
+.banner a{color:var(--amb);font-size:12.5px}
+.banner .bbtn{margin-left:auto;background:var(--amb);color:#1a1405;border:none;border-radius:6px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer}
+.banner .x{background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px}
+.pagehead{display:flex;align-items:center;justify-content:space-between;padding:16px 36px;border-bottom:1px solid var(--b)}
+.pagehead h1{font-family:var(--sat);font-weight:700;font-size:19px;letter-spacing:-.3px}
+.btn{font-size:13px;font-weight:600;background:var(--g);color:#06100a;border:none;border-radius:8px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s}
+.btn:hover{background:var(--g2)}
+.btn.ghost{background:transparent;color:var(--t2);border:1px solid var(--b2);font-weight:500}
+.btn.ghost:hover{color:var(--t);background:rgba(255,255,255,.04)}
+.content{padding:34px 36px 60px;max-width:1320px}
+
+/* ---------- hero ---------- */
+.eyebrow{font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.eyebrow .live{width:6px;height:6px;border-radius:50%;background:var(--g);animation:blink 1.8s infinite}
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:44px;align-items:end;margin-bottom:28px}
+.hero h2{font-family:var(--sat);font-weight:900;font-size:44px;letter-spacing:-1.8px;line-height:1.05}
+.hero h2 em{font-style:normal;color:var(--amb)}
+.hero p{color:var(--t2);font-size:14px;margin-top:12px;max-width:470px;line-height:1.65}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--b);border:1px solid var(--b);border-radius:12px;overflow:hidden}
+.kpi{background:var(--bg1);padding:16px 18px}
+.kpi b{font-family:var(--sat);font-weight:900;font-size:30px;letter-spacing:-1px;display:block;line-height:1.1}
+.kpi span{font-size:12px;color:var(--t2)}
+.kpi small{font-family:var(--mono);font-size:10px;margin-top:6px;display:block;color:var(--t3)}
+
+/* ---------- toolbar ---------- */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.seg{display:flex;background:var(--bg1);border:1px solid var(--b);border-radius:9px;padding:3px}
+.seg button{background:none;border:none;color:var(--t2);font-size:12.5px;font-weight:500;padding:6px 12px;border-radius:6px;cursor:pointer}
+.seg button.on{background:var(--bg3);color:var(--t)}
+.chips{display:flex;gap:6px}
+.chip{display:flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--b);color:var(--t2);font-size:12.5px;padding:6px 11px;border-radius:20px;cursor:pointer}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--c)}
+.chip.on{border-color:var(--b2);color:var(--t);background:var(--bg2)}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.field{display:flex;align-items:center;gap:7px;background:var(--bg1);border:1px solid var(--b);border-radius:9px;padding:0 11px;height:34px;color:var(--t3)}
+.field:focus-within{border-color:rgba(74,222,128,.4)}
+.field input,.field select{background:none;border:none;outline:none;color:var(--t);font-size:12.5px;height:100%}
+.field input{width:150px}
+.field select option{background:var(--bg2)}
+.toggle{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--t2);cursor:pointer;user-select:none}
+.toggle .sw{width:28px;height:16px;border-radius:10px;background:var(--bg3);border:1px solid var(--b2);position:relative;transition:.15s}
+.toggle .sw::after{content:'';position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:var(--t3);transition:.15s}
+.toggle.on .sw{background:var(--g3);border-color:rgba(74,222,128,.4)}
+.toggle.on .sw::after{left:14px;background:var(--g)}
+
+/* ---------- drift card ---------- */
+.drift{background:var(--bg1);border:1px solid var(--b);border-radius:14px;overflow:hidden}
+.row{display:grid;grid-template-columns:var(--label-w) minmax(0,1fr) var(--stab-w);align-items:center;padding:0 22px}
+.ct{font-family:var(--mono);font-size:10.5px;letter-spacing:1.3px;color:var(--t3);text-transform:uppercase}
+.activity{height:86px;border-bottom:1px solid var(--b);align-items:end;padding-bottom:0}
+.activity .lbl{align-self:center}
+.activity .lbl b{font-family:var(--sat);font-weight:900;font-size:22px;letter-spacing:-.5px;display:block}
+.activity .lbl span{font-size:11.5px;color:var(--t2)}
+.bars{position:relative;height:62px;margin:0 8px}
+.bar{position:absolute;bottom:0;border-radius:3px 3px 0 0;background:var(--bg3);transition:background .15s}
+.bar.has{background:rgba(74,222,128,.35)}
+.bar.peak{background:var(--g)}
+.bar:hover{background:var(--g)}
+.bar .bt{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;color:var(--t2);white-space:nowrap;opacity:0;transition:.15s;pointer-events:none}
+.bar:hover .bt{opacity:1}
+.axis{height:38px;border-bottom:1px solid var(--b)}
+.ticks{position:relative;height:100%;margin:0 8px}
+.tick{position:absolute;top:50%;transform:translate(-50%,-50%);font-family:var(--mono);font-size:10px;color:var(--t3);white-space:nowrap}
+.tick.now{color:var(--g)}
+.lanes{position:relative}
+.nowline{position:absolute;top:0;bottom:0;width:1px;background:linear-gradient(var(--g),rgba(74,222,128,.05));pointer-events:none;z-index:1}
+.lane{height:64px;border-bottom:1px solid var(--b);transition:background .15s}
+.lane:last-child{border-bottom:none}
+.lane:hover{background:rgba(255,255,255,.018)}
+.ln{display:flex;align-items:center;gap:10px;min-width:0;cursor:pointer}
+.ln .tdot{width:8px;height:8px;border-radius:2px;background:var(--tc);flex-shrink:0}
+.ln div{min-width:0}
+.ln b{font-size:13.5px;font-weight:500;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ln:hover b{color:var(--g)}
+.ln span{font-family:var(--mono);font-size:10.5px;color:var(--t3)}
+.track{position:relative;height:100%;margin:0 8px}
+.track::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:repeating-linear-gradient(90deg,var(--b2) 0 3px,transparent 3px 7px)}
+.span{position:absolute;top:50%;height:2px;transform:translateY(-50%);background:var(--c);opacity:.45;border-radius:2px}
+.dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:var(--bg1);border:2px solid var(--c);cursor:pointer;transition:transform .15s;z-index:2;padding:0}
+.dot:hover,.dot:focus-visible{transform:translate(-50%,-50%) scale(1.35);outline:none}
+.dot.current{width:14px;height:14px;background:var(--c);box-shadow:0 0 0 5px color-mix(in srgb,var(--c) 18%,transparent)}
+.dot.pending{width:14px;height:14px;border-style:dashed;animation:blink 1.4s infinite}
+.dot.restore{border-radius:3px}
+.dot.retire{background:var(--t3);border-color:var(--t3)}
+.dot .tip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--b2);border-radius:7px;padding:7px 10px;font-size:11.5px;white-space:nowrap;color:var(--t);opacity:0;pointer-events:none;transition:opacity .15s;text-align:left;font-weight:500}
+.dot .tip small{display:block;color:var(--t3);font-family:var(--mono);font-size:10px;font-weight:400;margin-top:2px}
+.dot:hover .tip,.dot:focus-visible .tip{opacity:1}
+.stab{text-align:right}
+.stab b{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--c)}
+.stab span{display:block;font-size:10.5px;color:var(--t3);margin-top:2px}
+.lane.retired .ln,.lane.retired .track{opacity:.45}
+.legend{display:flex;gap:18px;padding:12px 22px;border-top:1px solid var(--b);font-family:var(--mono);font-size:10.5px;color:var(--t3);flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:7px}
+.lg{width:10px;height:10px;border-radius:50%;border:2px solid var(--t2)}
+.lg.cur{background:var(--t2)}
+.lg.pen{border-style:dashed;border-color:var(--amb)}
+.lg.res{border-radius:2px}
+.empty{padding:56px 20px;text-align:center;color:var(--t2)}
+.empty i{font-size:28px;color:var(--t3)}
+.empty b{display:block;font-size:15px;color:var(--t);font-weight:500;margin:10px 0 4px}
+.empty span{font-size:13px}
+
+/* ---------- bottom ---------- */
+.bottom{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:18px}
+.card{background:var(--bg1);border:1px solid var(--b);border-radius:14px;padding:20px}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.who{display:flex;align-items:center;gap:11px;padding:9px 0}
+.who .nm{font-size:13px;width:92px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who .bar2{flex:1;height:6px;border-radius:3px;background:var(--bg3);overflow:hidden}
+.who .bar2 i{display:block;height:100%;border-radius:3px;background:var(--c)}
+.who .n{font-family:var(--mono);font-size:11px;color:var(--t2);width:18px;text-align:right}
+.ins{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--b)}
+.ins:last-child{border:none}
+.ins > i{font-size:18px;color:var(--c);margin-top:1px}
+.ins b{font-size:13px;font-weight:500;display:block}
+.ins span{font-size:12px;color:var(--t2);line-height:1.5}
+.so{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--b)}
+.so:last-child{border:none}
+.so .av{width:26px;height:26px;font-size:9.5px}
+.so b{font-size:12.5px;font-weight:500;display:block}
+.so span{font-size:11px;color:var(--t3);font-family:var(--mono)}
+.so .v{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--g)}
+
+/* ---------- drawer ---------- */
+.overlay{position:fixed;inset:0;background:rgba(3,4,7,.55);opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
+.overlay.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:100vw;background:var(--bg1);border-left:1px solid var(--b2);transform:translateX(100%);transition:transform .25s cubic-bezier(.2,.8,.2,1);z-index:41;display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.dh{padding:20px 22px;border-bottom:1px solid var(--b)}
+.dh .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.dh .x{background:none;border:1px solid var(--b);color:var(--t2);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px}
+.dh h3{font-family:var(--sat);font-weight:700;font-size:21px;letter-spacing:-.4px}
+.dh .sub{font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:4px}
+.badge{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--c)}
+.db{flex:1;overflow-y:auto;padding:20px 22px}
+.sec{margin-bottom:22px}
+.sec .ct{margin-bottom:10px;display:block}
+.quote{font-family:var(--serif);font-style:italic;font-size:20px;line-height:1.45;color:#dfe2ea;padding-left:14px;border-left:2px solid var(--c)}
+.by{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--t2)}
+.by .av{width:22px;height:22px;font-size:9px}
+.diff{border:1px solid var(--b);border-radius:9px;overflow:hidden}
+.dl{font-family:var(--mono);font-size:12px;padding:7px 12px;display:flex;gap:10px;color:var(--t2)}
+.dl .s{width:12px;flex-shrink:0}
+.dl.rm{background:rgba(248,113,113,.07);color:#f4a3a3}
+.dl.ad{background:rgba(74,222,128,.07);color:#a5efbf}
+.dl.none{color:var(--t3)}
+.people{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pp{border:1px solid var(--b);border-radius:9px;padding:11px 12px;display:flex;align-items:center;gap:9px}
+.pp b{font-size:12.5px;font-weight:500;display:block}
+.pp span{font-size:10.5px;color:var(--t3);font-family:var(--mono)}
+.outs{display:flex;flex-wrap:wrap;gap:8px}
+.out{font-family:var(--mono);font-size:11px;color:var(--t2);border:1px solid var(--b);border-radius:7px;padding:6px 10px;display:flex;align-items:center;gap:6px}
+.df{padding:16px 22px;border-top:1px solid var(--b);display:flex;gap:8px}
+.df .btn{flex:1;justify-content:center}
+
+@keyframes blink{50%{opacity:.35}}
+@media(max-width:1100px){
+  .side,.rail{display:none}
+  .hero,.bottom{grid-template-columns:1fr}
+  :root{--label-w:170px;--stab-w:0px}
+  .stab,.row > .ct:last-child{display:none}
+  .content{padding:26px 20px 60px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <nav class="rail" aria-label="Workspaces">
+    <div class="ws on" title="Apex">NA</div>
+    <div class="ws" title="Personal workspace">PW</div>
+    <div class="ws add" title="New workspace">+</div>
+  </nav>
+
+  <aside class="side">
+    <div class="logo">
+      <svg width="32" height="32" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="10" fill="#4ade80"/><g transform="translate(24 25.5) scale(1.72) translate(-12 -9.75)" fill="#0a0c10"><rect x="2" y="9" width="6" height="6" rx="1.4"/><rect x="16" y="9" width="6" height="6" rx="1.4"/><path d="M8 12h8" stroke="#0a0c10" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="4.5" r="2.4"/><path d="M12 6.9V9" stroke="#0a0c10" stroke-width="1.8" stroke-linecap="round"/></g></svg>
+      <div><b>LogicGate</b><span>Data Definition Layer</span></div>
+    </div>
+    <div class="nav">
+      <div class="navlbl">Workspace</div>
+      <a class="on" href="#"><i class="ti ti-layout-dashboard"></i>Dashboard</a>
+      <a href="#"><i class="ti ti-file-text"></i>Definitions<span class="cnt" id="navCount">0</span></a>
+      <a href="#"><i class="ti ti-git-pull-request"></i>Reviews<span class="cnt hot" id="navReviews">0</span></a>
+      <a href="#"><i class="ti ti-code"></i>Pseudocodes</a>
+      <div class="navlbl">Collaboration</div>
+      <a href="#"><i class="ti ti-message-circle"></i>Discussions</a>
+      <a href="#"><i class="ti ti-users"></i>Stakeholders</a>
+      <div class="navlbl">Admin</div>
+      <a href="#"><i class="ti ti-settings"></i>Settings</a>
+      <a href="#"><i class="ti ti-plug"></i>Integrations</a>
+    </div>
+    <div class="side-bottom">
+      <div class="search"><i class="ti ti-search"></i>Search<kbd>Ctrl K</kbd></div>
+      <div class="ai-state"><i></i>AI not available</div>
+      <div class="me"><div class="av">AA</div><div><b>Ahmad A.</b><span>Data Engineer</span></div><i class="ti ti-bell"></i></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="banner" id="banner">
+      <i class="ti ti-bolt"></i>
+      <span>Add AI superpowers: a free OpenRouter key turns plain English into definitions and drafts your change summaries.</span>
+      <button class="bbtn">Add API key →</button>
+      <a href="#">Get a free key ↗</a>
+      <button class="x" aria-label="Dismiss" onclick="document.getElementById('banner').remove()"><i class="ti ti-x"></i></button>
+    </div>
+
+    <div class="pagehead">
+      <h1>Dashboard</h1>
+      <button class="btn"><i class="ti ti-plus"></i>New definition</button>
+    </div>
+
+    <div class="content">
+      <section class="hero">
+        <div>
+          <div class="eyebrow"><span class="live"></span>Logic drift · <span id="rangeLabel">last 12 weeks</span></div>
+          <h2 id="headline">Your definitions changed <em>0 times</em>.</h2>
+          <p>Each lane is a definition and each dot a version. Long quiet lanes are logic you can trust. Clusters of dots are where the arguments are.</p>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><b id="kShipped">0</b><span>versions shipped</span><small id="kShippedSub">in range</small></div>
+          <div class="kpi"><b id="kChanged">0</b><span>definitions changed</span><small id="kChangedSub">of 0 tracked</small></div>
+          <div class="kpi"><b id="kReason" style="color:var(--g)">0%</b><span>with a written reason</span><small>no silent edits</small></div>
+          <div class="kpi"><b id="kMedian">0d</b><span>median sign-off time</span><small>proposal → approval</small></div>
+        </div>
+      </section>
+
+      <div class="toolbar">
+        <div class="seg" id="range" role="tablist">
+          <button data-w="4">4w</button>
+          <button data-w="12" class="on">12w</button>
+          <button data-w="26">6m</button>
+        </div>
+        <div class="chips" id="types">
+          <button class="chip on" data-t="all">All</button>
+          <button class="chip" data-t="metric" style="--c:var(--blue)"><i></i>Metrics</button>
+          <button class="chip" data-t="rule" style="--c:var(--pur)"><i></i>Rules</button>
+          <button class="chip" data-t="filter" style="--c:var(--amb)"><i></i>Filters</button>
+          <button class="chip" data-t="flag" style="--c:var(--red)"><i></i>Flags</button>
+        </div>
+        <div class="tb-right">
+          <label class="toggle" id="retToggle"><span class="sw"></span>Show retired</label>
+          <div class="field"><i class="ti ti-arrows-sort"></i>
+            <select id="sort">
+              <option value="volatile">Most changed</option>
+              <option value="recent">Recently changed</option>
+              <option value="quiet">Most stable</option>
+              <option value="az">A to Z</option>
+            </select>
+          </div>
+          <div class="field"><i class="ti ti-search"></i><input id="q" placeholder="Filter definitions"/></div>
+        </div>
+      </div>
+
+      <section class="drift" aria-label="Definition drift over time">
+        <div class="row activity">
+          <div class="lbl"><b id="peakNum">0</b><span id="peakLbl">changes in the busiest week</span></div>
+          <div class="bars" id="bars"></div>
+          <div class="ct" style="text-align:right;align-self:center">per week</div>
+        </div>
+        <div class="row axis">
+          <span class="ct">Definition</span>
+          <div class="ticks" id="ticks"></div>
+          <span class="ct" style="text-align:right">Stability</span>
+        </div>
+        <div class="lanes" id="lanes"></div>
+        <div class="legend">
+          <span><i class="lg"></i>past version</span>
+          <span><i class="lg cur"></i>current version</span>
+          <span><i class="lg pen"></i>awaiting sign-off</span>
+          <span><i class="lg res"></i>restored</span>
+          <span style="margin-left:auto">Click any dot to see what changed and why</span>
+        </div>
+      </section>
+
+      <section class="bottom">
+        <div class="card">
+          <div class="ch"><span class="ct">Who moves the logic</span><span class="ct">versions</span></div>
+          <div id="movers"></div>
+        </div>
+        <div class="card">
+          <div class="ch"><span class="ct">Worth a conversation</span></div>
+          <div id="insights"></div>
+        </div>
+        <div class="card">
+          <div class="ch"><span class="ct">Recently signed off</span></div>
+          <div id="signed"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+  <div class="dh">
+    <div class="top"><span class="badge" id="dBadge">v0</span><button class="x" id="dClose" aria-label="Close"><i class="ti ti-x"></i></button></div>
+    <h3 id="dTitle">Definition</h3>
+    <div class="sub" id="dSub"></div>
+  </div>
+  <div class="db">
+    <div class="sec"><span class="ct">Why it changed</span><p class="quote" id="dReason"></p><div class="by" id="dBy"></div></div>
+    <div class="sec"><span class="ct">What changed</span><div class="diff" id="dDiff"></div></div>
+    <div class="sec"><span class="ct">Accountability</span><div class="people" id="dPeople"></div></div>
+    <div class="sec"><span class="ct">Compiled outputs affected</span><div class="outs" id="dOuts"></div></div>
+  </div>
+  <div class="df">
+    <button class="btn ghost"><i class="ti ti-git-compare"></i>Compare with current</button>
+    <button class="btn"><i class="ti ti-arrow-up-right"></i>Open definition</button>
+  </div>
+</aside>
+
+<script>
+/* ---------------- MOCK DATA (replace with API: GET /api/dashboard/drift?weeks=) ---------------- */
+const NOW = new Date('2026-09-22T18:00:00');
+const PEOPLE = {
+  'Ayesha R.':{c:'#60a5fa',role:'Finance'}, 'Maryam K.':{c:'#a78bfa',role:'Product'},
+  'Hassan A.':{c:'#fbbf24',role:'Sales'},   'Ahmad A.':{c:'#4ade80',role:'Data Engineer'},
+  'Dawood L.':{c:'#4ade80',role:'VP Data'}, 'System':{c:'#8892a4',role:'Automation'}
+};
+const DEFS = [
+  {id:'mar',name:'Monthly Active Revenue',type:'metric',domain:'finance',owner:'Ayesha R.',status:'pending',versions:[
+    {v:'v4.0',date:'2026-07-06',author:'Ayesha R.',approver:'Dawood L.',kind:'edit',reason:'Revenue should come from settled transactions, not orders.',removed:['FROM orders'],added:['FROM transactions'],outputs:['fct_monthly_revenue.sql','revenue.py']},
+    {v:'v4.1',date:'2026-07-30',author:'Ayesha R.',approver:'Dawood L.',kind:'edit',reason:'Refunds were inflating MRR in the board deck.',removed:[],added:["AND type NOT IN ('refund')"],outputs:['fct_monthly_revenue.sql','revenue.py']},
+    {v:'v4.1.1',date:'2026-08-18',author:'Ahmad A.',approver:'Dawood L.',kind:'edit',reason:'Convert all currencies to USD at transaction date.',removed:['SUM(amount)'],added:['SUM(amount_usd)'],outputs:['fct_monthly_revenue.sql']},
+    {v:'v4.2',date:'2026-09-02',author:'Ayesha R.',approver:'Dawood L.',kind:'edit',reason:'Count each customer once per month, keep the first transaction.',removed:[],added:['DEDUP BY user_id KEEP FIRST'],outputs:['fct_monthly_revenue.sql','revenue.py','mar.dbt']},
+    {v:'v4.3',date:'2026-09-22',author:'Ayesha R.',approver:null,kind:'pending',reason:'Finance audit requires chargebacks to be excluded from MRR.',removed:["AND type NOT IN ('refund')"],added:["AND type NOT IN ('refund','chargeback')"],outputs:['fct_monthly_revenue.sql','revenue.py','mar.dbt']}
+  ]},
+  {id:'au',name:'Active User',type:'filter',domain:'product',owner:'Maryam K.',status:'pending',versions:[
+    {v:'v3.0',date:'2026-07-22',author:'Maryam K.',approver:'Ahmad A.',kind:'edit',reason:'Exclude trial plans from active users.',removed:[],added:["AND plan != 'trial'"],outputs:['dim_active_users.sql']},
+    {v:'v3.1',date:'2026-09-01',author:'Maryam K.',approver:'Ahmad A.',kind:'edit',reason:'Widen the activity window to 90 days for the quarterly review.',removed:['last_login >= now() - 60 days'],added:['last_login >= now() - 90 days'],outputs:['dim_active_users.sql']},
+    {v:'v3.2',date:'2026-09-05',author:'Ahmad A.',approver:'Dawood L.',kind:'restore',reason:'Restored v3.0. The 90-day window hid churn in the weekly report.',removed:['last_login >= now() - 90 days'],added:['last_login >= now() - 60 days'],outputs:['dim_active_users.sql']},
+    {v:'v3.3',date:'2026-09-21',author:'Maryam K.',approver:null,kind:'pending',reason:'Product wants a 30-day window to match the app analytics tool.',removed:['last_login >= now() - 60 days'],added:['last_login >= now() - 30 days'],outputs:['dim_active_users.sql']}
+  ]},
+  {id:'lur',name:'Locked Users Revenue',type:'metric',domain:'finance',owner:'Ahmad A.',status:'published',versions:[
+    {v:'v2.0',date:'2026-07-12',author:'Ahmad A.',approver:'Dawood L.',kind:'create',reason:'New metric for accounts locked at month end.',removed:[],added:["WHERE account_status = 'locked'",'SUM(amount_usd)'],outputs:['fct_locked_revenue.sql']},
+    {v:'v2.1',date:'2026-07-26',author:'Ahmad A.',approver:'Dawood L.',kind:'edit',reason:'Partner accounts are billed separately and should not count.',removed:[],added:["AND account_type != 'partner'"],outputs:['fct_locked_revenue.sql']}
+  ]},
+  {id:'ent',name:'Enterprise Tier',type:'rule',domain:'sales',owner:'Hassan A.',status:'published',versions:[
+    {v:'v1.0',date:'2026-08-24',author:'Hassan A.',approver:'Ahmad A.',kind:'create',reason:'Segment for accounts on the enterprise plan.',removed:[],added:["plan = 'enterprise'"],outputs:['dim_segments.sql']},
+    {v:'v2.0',date:'2026-09-16',author:'Hassan A.',approver:'Dawood L.',kind:'edit',reason:'Sales now defines enterprise by ARR, not plan name.',removed:["plan = 'enterprise'"],added:['arr_usd > 50000'],outputs:['dim_segments.sql']}
+  ]},
+  {id:'churn',name:'Churned User',type:'filter',domain:'product',owner:'Maryam K.',status:'published',versions:[
+    {v:'v1.0',date:'2026-07-15',author:'Maryam K.',approver:'Ahmad A.',kind:'create',reason:'Users with no login for 60 days.',removed:[],added:['last_login < now() - 60 days'],outputs:['dim_churned_users.sql']},
+    {v:'v1.1',date:'2026-08-10',author:'Maryam K.',approver:'Ahmad A.',kind:'edit',reason:'Exclude users who cancelled and resubscribed.',removed:[],added:['AND resubscribed = false'],outputs:['dim_churned_users.sql']}
+  ]},
+  {id:'trial',name:'Trial Flag',type:'flag',domain:'product',owner:'Maryam K.',status:'published',versions:[
+    {v:'v1.0',date:'2026-06-30',author:'Maryam K.',approver:'Ahmad A.',kind:'create',reason:'Flag accounts still inside the 14-day trial.',removed:[],added:['created_at >= now() - 14 days',"AND plan = 'trial'"],outputs:['dim_accounts.sql']}
+  ]},
+  {id:'qa',name:'QA Metric ×4',type:'metric',domain:'qa',owner:'System',status:'deprecated',versions:[
+    {v:'v1.0',date:'2026-08-01',author:'System',approver:null,kind:'create',reason:'Generated during the QA test run.',removed:[],added:['SELECT 1'],outputs:[]},
+    {v:'retired',date:'2026-09-09',author:'Ahmad A.',approver:null,kind:'retire',reason:'Test definitions retired. Kept for the record.',removed:['SELECT 1'],added:[],outputs:[]}
+  ]}
+];
+
+/* ---------------- STATE ---------------- */
+const S = {weeks:12, type:'all', sort:'volatile', q:'', retired:false};
+const TYPE_C = {metric:'#60a5fa',rule:'#a78bfa',filter:'#fbbf24',flag:'#f87171'};
+const DAY = 864e5;
+const $ = id => document.getElementById(id);
+const d = s => new Date(s+'T12:00:00');
+const fmt = dt => dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+const rangeStart = () => new Date(NOW - S.weeks*7*DAY);
+const pos = dt => Math.max(0,Math.min(100,(dt - rangeStart())/(NOW - rangeStart())*100));
+const shipped = def => def.versions.filter(v => v.kind!=='pending');
+const inRange = v => d(v.date) >= rangeStart();
+
+function stability(def){
+  const vr = def.versions.filter(inRange).filter(v=>v.kind!=='pending').length;
+  const last = shipped(def).at(-1);
+  const quiet = Math.round((NOW - d(last.date))/DAY);
+  if(def.status==='deprecated') return {l:'retired',s:'excluded from outputs',c:'#4a5268',score:-1,quiet};
+  if(def.versions.some(v=>v.kind==='pending')) return {l:'in review',s:`${vr} shipped · 1 pending`,c:'#fbbf24',score:vr+.5,quiet};
+  if(vr>=4) return {l:'volatile',s:`${vr} versions in range`,c:'#fbbf24',score:vr,quiet};
+  if(quiet>=45) return {l:'settled',s:`${quiet} days quiet`,c:'#4ade80',score:vr,quiet};
+  return {l:'shifting',s:`${vr} version${vr===1?'':'s'} · ${quiet}d quiet`,c:'#a78bfa',score:vr,quiet};
+}
+
+function visibleDefs(){
+  let list = DEFS.filter(x => (S.retired || x.status!=='deprecated'))
+                 .filter(x => S.type==='all' || x.type===S.type)
+                 .filter(x => x.name.toLowerCase().includes(S.q.toLowerCase()));
+  const lastDate = x => d(x.versions.at(-1).date);
+  const sorters = {
+    volatile:(a,b)=>stability(b).score-stability(a).score,
+    recent:(a,b)=>lastDate(b)-lastDate(a),
+    quiet:(a,b)=>stability(b).quiet-stability(a).quiet,
+    az:(a,b)=>a.name.localeCompare(b.name)
+  };
+  return list.sort(sorters[S.sort]);
+}
+
+/* ---------------- RENDER ---------------- */
+function render(){
+  const defs = visibleDefs();
+  const active = DEFS.filter(x=>x.status!=='deprecated');
+  const allV = active.flatMap(x=>x.versions.filter(inRange));
+  const shippedV = allV.filter(v=>v.kind!=='pending');
+  const changedDefs = active.filter(x=>x.versions.some(v=>inRange(v)&&v.kind!=='pending')).length;
+  const withReason = allV.filter(v=>v.reason && v.reason.trim()).length;
+  const label = S.weeks===26?'last 6 months':`last ${S.weeks} weeks`;
+
+  $('navCount').textContent = DEFS.length;
+  $('navReviews').textContent = DEFS.filter(x=>x.versions.some(v=>v.kind==='pending')).length;
+  $('rangeLabel').textContent = label;
+  $('headline').innerHTML = `Your definitions changed <em>${shippedV.length} time${shippedV.length===1?'':'s'}</em><br/>in the ${label}.`;
+  $('kShipped').textContent = shippedV.length;
+  $('kShippedSub').textContent = `${allV.length-shippedV.length} awaiting sign-off`;
+  $('kChanged').textContent = changedDefs;
+  $('kChangedSub').textContent = `of ${active.length} tracked`;
+  $('kReason').textContent = allV.length ? Math.round(withReason/allV.length*100)+'%' : '—';
+  $('kMedian').textContent = '1.8d';
+
+  renderAxis(); renderBars(defs); renderLanes(defs); renderSide();
+}
+
+function renderAxis(){
+  const start = rangeStart(), ticks = [];
+  const step = S.weeks===4 ? 7 : S.weeks===12 ? 21 : 42;
+  for(let t = new Date(start); t < NOW - step*DAY*0.5; t = new Date(+t + step*DAY)) ticks.push(t);
+  $('ticks').innerHTML = ticks.map(t=>`<span class="tick" style="left:${pos(t)}%">${fmt(t).toUpperCase()}</span>`).join('')
+    + `<span class="tick now" style="left:100%;transform:translate(-100%,-50%)">TODAY</span>`;
+}
+
+function renderBars(defs){
+  const n = S.weeks, counts = Array(n).fill(0), start = rangeStart();
+  defs.filter(x=>x.status!=='deprecated').forEach(x=>x.versions.forEach(v=>{
+    if(v.kind==='pending'||!inRange(v)) return;
+    const i = Math.min(n-1, Math.floor((d(v.date)-start)/(7*DAY))); counts[i]++;
+  }));
+  const max = Math.max(1,...counts), w = 100/n;
+  $('peakNum').textContent = Math.max(...counts);
+  $('bars').innerHTML = counts.map((c,i)=>{
+    const wk = new Date(+start + i*7*DAY);
+    return `<div class="bar ${c?'has':''} ${c===max&&c>0?'peak':''}" style="left:calc(${i*w}% + 2px);width:calc(${w}% - 4px);height:${c? Math.max(14,c/max*100):6}%">
+      <span class="bt">${c} · wk of ${fmt(wk)}</span></div>`;
+  }).join('');
+}
+
+function renderLanes(defs){
+  if(!defs.length){
+    $('lanes').innerHTML = `<div class="empty"><i class="ti ti-search-off"></i><b>No definitions match</b><span>Try another type, a wider range, or clear the search.</span></div>`;
+    return;
+  }
+  $('lanes').innerHTML = `<div class="nowline" style="left:calc(100% - 22px - var(--stab-w) - 8px)"></div>` + defs.map(x=>{
+    const st = stability(x), c = x.status==='deprecated' ? '#4a5268' : st.c;
+    const vis = x.versions.map((v,i)=>({v,i})).filter(o=>inRange(o.v));
+    const curIdx = x.versions.findLastIndex(v=>v.kind!=='pending');
+    const firstPos = vis.length ? pos(d(vis[0].v.date)) : 0;
+    const spanStart = x.versions.some(v=>!inRange(v)) ? 0 : firstPos;
+    const dots = vis.map(({v,i})=>{
+      const cls = [v.kind==='pending'?'pending':'', i===curIdx&&x.status!=='deprecated'?'current':'', v.kind==='restore'?'restore':'', v.kind==='retire'?'retire':''].join(' ');
+      return `<button class="dot ${cls}" style="left:${pos(d(v.date))}%" data-def="${x.id}" data-i="${i}" aria-label="${x.name} ${v.v}">
+        <span class="tip">${v.v} · ${v.kind==='pending'?'awaiting sign-off':v.kind==='restore'?'restored':v.kind==='retire'?'retired':v.author}<small>${fmt(d(v.date))} · ${v.author}</small></span></button>`;
+    }).join('');
+    const quietDot = !vis.length ? `<span style="position:absolute;left:4px;top:50%;transform:translateY(-120%);font-family:var(--mono);font-size:10px;color:var(--t3)">no changes in range · last ${shipped(x).at(-1).v} on ${fmt(d(shipped(x).at(-1).date))}</span>` : '';
+    return `<div class="row lane ${x.status==='deprecated'?'retired':''}" style="--c:${c};--tc:${TYPE_C[x.type]}">
+      <div class="ln"><span class="tdot"></span><div><b>${x.name}</b><span>${x.type} · ${x.domain} · ${x.owner}</span></div></div>
+      <div class="track"><span class="span" style="left:${spanStart}%;width:${100-spanStart}%"></span>${dots}${quietDot}</div>
+      <div class="stab" style="--c:${st.c}"><b>${st.l}</b><span>${st.s}</span></div></div>`;
+  }).join('');
+  document.querySelectorAll('.dot').forEach(b=>b.onclick=()=>openDrawer(b.dataset.def,+b.dataset.i));
+}
+
+function renderSide(){
+  const tally = {};
+  DEFS.forEach(x=>x.versions.filter(inRange).forEach(v=>{ if(v.author!=='System') tally[v.author]=(tally[v.author]||0)+1; }));
+  const rows = Object.entries(tally).sort((a,b)=>b[1]-a[1]).slice(0,4), max = rows[0]?.[1]||1;
+  $('movers').innerHTML = rows.map(([n,c])=>{
+    const p = PEOPLE[n]; const ini = n.split(' ').map(s=>s[0]).join('').replace('.','');
+    return `<div class="who"><div class="av" style="--c:${p.c}">${ini}</div><span class="nm">${n}</span><div class="bar2"><i style="width:${c/max*100}%;--c:${p.c}"></i></div><span class="n">${c}</span></div>`;
+  }).join('') || `<p style="font-size:12.5px;color:var(--t2)">No changes in this range.</p>`;
+
+  const vol = DEFS.filter(x=>x.status!=='deprecated').map(x=>({x,s:stability(x)}));
+  const top = vol.sort((a,b)=>b.s.score-a.s.score)[0];
+  const settled = vol.filter(o=>o.s.l==='settled').sort((a,b)=>b.s.quiet-a.s.quiet)[0];
+  $('insights').innerHTML = [
+    top && `<div class="ins" style="--c:#fbbf24"><i class="ti ti-arrows-shuffle"></i><div><b>${top.x.name} keeps moving</b><span>${top.x.versions.filter(inRange).length} versions in range. Worth agreeing on it with ${top.x.owner} before the next change.</span></div></div>`,
+    `<div class="ins" style="--c:#60a5fa"><i class="ti ti-arrows-split-2"></i><div><b>Active User and Churned User may overlap</b><span>Both use <code style="font-family:var(--mono);font-size:11px">last_login</code> with different windows. Some users could be neither.</span></div></div>`,
+    settled && `<div class="ins" style="--c:#4ade80"><i class="ti ti-shield-check"></i><div><b>${settled.x.name} is settled</b><span>No change in ${settled.s.quiet} days. Safe to build on.</span></div></div>`
+  ].filter(Boolean).join('');
+
+  const signed = DEFS.flatMap(x=>x.versions.filter(v=>v.approver).map(v=>({x,v}))).sort((a,b)=>d(b.v.date)-d(a.v.date)).slice(0,4);
+  $('signed').innerHTML = signed.map(({x,v})=>{
+    const p = PEOPLE[v.approver]; const ini = v.approver.split(' ').map(s=>s[0]).join('').replace('.','');
+    return `<div class="so"><div class="av" style="--c:${p.c}">${ini}</div><div><b>${x.name}</b><span>${v.approver} · ${fmt(d(v.date))}</span></div><span class="v">${v.v}</span></div>`;
+  }).join('');
+}
+
+/* ---------------- DRAWER ---------------- */
+function openDrawer(id,i){
+  const x = DEFS.find(o=>o.id===id), v = x.versions[i];
+  const kc = v.kind==='pending'?'#fbbf24':v.kind==='restore'?'#a78bfa':v.kind==='retire'?'#8892a4':'#4ade80';
+  const kl = {pending:'AWAITING SIGN-OFF',restore:'RESTORED',retire:'RETIRED',create:'CREATED',edit:'SHIPPED'}[v.kind];
+  $('dBadge').textContent = `${v.v} · ${kl}`; $('dBadge').style.setProperty('--c',kc);
+  $('dTitle').textContent = x.name;
+  $('dSub').textContent = `${x.type} · ${x.domain} · ${d(v.date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'})}`;
+  $('dReason').textContent = `“${v.reason}”`; $('dReason').style.setProperty('--c',kc);
+  const a = PEOPLE[v.author]; const ai = v.author.split(' ').map(s=>s[0]).join('').replace('.','');
+  $('dBy').innerHTML = `<div class="av" style="--c:${a.c}">${ai}</div>${v.author} · ${a.role}`;
+  const lines = [...v.removed.map(l=>`<div class="dl rm"><span class="s">−</span>${l}</div>`), ...v.added.map(l=>`<div class="dl ad"><span class="s">+</span>${l}</div>`)];
+  $('dDiff').innerHTML = lines.join('') || `<div class="dl none">No logic changes</div>`;
+  const ap = v.approver ? PEOPLE[v.approver] : null;
+  $('dPeople').innerHTML = `
+    <div class="pp"><div class="av" style="--c:${a.c}">${ai}</div><div><b>${v.author}</b><span>PROPOSED</span></div></div>
+    ${ap ? `<div class="pp"><div class="av" style="--c:${ap.c}">${v.approver.split(' ').map(s=>s[0]).join('').replace('.','')}</div><div><b>${v.approver}</b><span>SIGNED OFF</span></div></div>`
+         : `<div class="pp" style="border-style:dashed;border-color:rgba(251,191,36,.4)"><div class="av" style="--c:#fbbf24"><i class="ti ti-clock" style="font-size:13px"></i></div><div><b>Awaiting you</b><span style="color:var(--amb)">NOT SIGNED</span></div></div>`}`;
+  $('dOuts').innerHTML = v.outputs.length ? v.outputs.map(o=>`<span class="out"><i class="ti ${o.endsWith('.py')?'ti-brand-python':o.endsWith('.dbt')?'ti-stack-2':'ti-database'}"></i>${o}</span>`).join('') : `<span style="font-size:12.5px;color:var(--t2)">None. Excluded from compiled outputs.</span>`;
+  $('overlay').classList.add('on'); $('drawer').classList.add('on'); $('dClose').focus();
+}
+function closeDrawer(){ $('overlay').classList.remove('on'); $('drawer').classList.remove('on'); }
+$('overlay').onclick = closeDrawer; $('dClose').onclick = closeDrawer;
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDrawer(); });
+
+/* ---------------- CONTROLS ---------------- */
+document.querySelectorAll('#range button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#range button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  S.weeks = +b.dataset.w; render();
+});
+document.querySelectorAll('#types .chip').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#types .chip').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  S.type = b.dataset.t; render();
+});
+$('retToggle').onclick = ()=>{ S.retired=!S.retired; $('retToggle').classList.toggle('on',S.retired); render(); };
+$('sort').onchange = e=>{ S.sort=e.target.value; render(); };
+$('q').oninput = e=>{ S.q=e.target.value; render(); };
+
+render();
+</script>
+</body>
+</html>
