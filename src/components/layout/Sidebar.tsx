@@ -205,10 +205,10 @@ function NavContent({
           onClick={() => window.dispatchEvent(new Event(OPEN_PALETTE_EVENT))}
           aria-label="Search and commands"
           title="Search & commands"
-          className="mx-[18px] mb-3 mt-auto flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-[var(--background,#0d0f14)] px-3 py-2.5 transition-colors hover:border-white/20 hover:bg-white/5"
+          className="mx-[18px] mb-3 mt-auto flex items-center justify-center gap-1.5 rounded-md border border-white/10 bg-[var(--background,#0d0f14)] px-2 py-1.5 transition-colors hover:border-white/20 hover:bg-white/5"
         >
-          <Search className="h-4 w-4 shrink-0 text-white/55" />
-          <kbd className="shrink-0 rounded border border-white/15 bg-white/5 px-1.5 py-0.5 font-[family-name:var(--app-font)] text-[11px] text-white/60">
+          <Search className="h-3.5 w-3.5 shrink-0 text-white/55" />
+          <kbd className="shrink-0 rounded border border-white/15 bg-white/5 px-1 py-px font-[family-name:var(--app-font)] text-[10px] leading-4 text-white/60">
             Ctrl K
           </kbd>
         </button>

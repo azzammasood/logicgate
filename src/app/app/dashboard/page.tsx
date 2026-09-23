@@ -150,6 +150,9 @@ export default function DashboardPage() {
   }, [all, showRetired, type, query, sort, stability]);
 
   const active = useMemo(() => all.filter((d) => d.status !== "deprecated"), [all]);
+  // The bottom cards count the same definitions the KPIs and lanes do, so
+  // "who moves the logic" can't disagree with "versions shipped".
+  const scoped = showRetired ? all : active;
 
   const kpis = useMemo(() => {
     const versions = active.flatMap((d) => d.versions.filter(inRange));
@@ -206,7 +209,7 @@ export default function DashboardPage() {
 
   const movers = useMemo(() => {
     const tally = new Map<string, { count: number; color: string; initials: string }>();
-    for (const def of all) {
+    for (const def of scoped) {
       for (const v of def.versions.filter(inRange)) {
         const entry = tally.get(v.author.name) ?? {
           count: 0,
@@ -221,7 +224,7 @@ export default function DashboardPage() {
       .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 4)
       .map(([name, meta]) => ({ name, ...meta }));
-  }, [all, inRange]);
+  }, [scoped, inRange]);
 
   const insights = useMemo(() => {
     const scored = active.map((d) => ({ def: d, s: stability(d) }));
@@ -267,11 +270,16 @@ export default function DashboardPage() {
   }, [active, data, stability, inRange]);
 
   const signedOff = useMemo(() => {
-    return all
+    return scoped
       .flatMap((d) => d.versions.filter((v) => v.approver).map((v) => ({ def: d, v })))
       .sort((a, b) => new Date(b.v.date).getTime() - new Date(a.v.date).getTime())
       .slice(0, 4);
-  }, [all]);
+  }, [scoped]);
+
+  // Remounting the lanes on a filter change replays their entrance animation,
+  // so switching range or type reads as a transition. Deliberately excludes the
+  // search box: re-animating on every keystroke is worse than not animating.
+  const renderKey = `${weeks}-${type}-${sort}-${showRetired}`;
 
   const selection = useMemo(() => {
     if (!selected) return null;
@@ -510,7 +518,7 @@ export default function DashboardPage() {
                     className="nowline"
                     style={{ left: "calc(100% - 22px - var(--stab-w) - 8px)" }}
                   />
-                  {visible.map((def) => {
+                  {visible.map((def, laneIndex) => {
                     const st = stability(def);
                     const laneColor = def.status === "deprecated" ? "var(--text3)" : st.color;
                     const shipped = shippedOf(def);
@@ -523,12 +531,13 @@ export default function DashboardPage() {
                     const last = shipped[shipped.length - 1];
                     return (
                       <div
-                        key={def.id}
+                        key={`${renderKey}-${def.id}`}
                         className={`row lane${def.status === "deprecated" ? " retired" : ""}`}
                         style={
                           {
                             ["--c"]: laneColor,
                             ["--tc"]: DRIFT_TYPE_COLOR[def.type],
+                            animationDelay: `${Math.min(laneIndex, 8) * 0.035}s`,
                           } as React.CSSProperties
                         }
                       >
