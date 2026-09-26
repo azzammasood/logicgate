@@ -59,16 +59,19 @@
 }
 .drift-page .hero h2 {
   font-family: var(--sat);
-  font-weight: 500;
-  font-size: clamp(24px, 2.3vw, 32px);
-  letter-spacing: -0.6px;
-  line-height: 1.25;
+  font-weight: 650;
+  font-size: clamp(24px, 2.4vw, 36px);
+  letter-spacing: -1px;
+  line-height: 1.2;
+  white-space: nowrap;
   text-wrap: balance;
 }
 /* The count and its unit are one phrase — never break "14 times" across lines. */
 .drift-page .hero h2 em {
   font-style: normal;
+  font-weight: 800;
   color: var(--accent);
+  text-shadow: 0 0 28px color-mix(in srgb, var(--accent) 35%, transparent);
   white-space: nowrap;
 }
 .drift-page .hero p {

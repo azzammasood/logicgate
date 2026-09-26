@@ -1581,27 +1581,16 @@
   box-shadow: -2px 0 0 0 var(--bullet-accent, var(--accent));
 }
 
-/* Hero — spotlight that follows the cursor across the background */
-.hero-cursor-glow {
+/* Hero — cursor "decode lens" canvas (HeroDecodeField) */
+.hero-decode-field {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  background: radial-gradient(
-    420px circle at var(--mx, 50%) var(--my, 30%),
-    rgba(74, 222, 128, 0.09),
-    transparent 65%
-  );
-}
-.hero-section:hover .hero-cursor-glow {
-  opacity: 1;
+  /* Soften behind the copy so the headline stays readable */
+  mask-image: radial-gradient(ellipse at 50% 50%, #000 55%, rgba(0, 0, 0, 0.55) 100%);
 }
 @media (prefers-reduced-motion: reduce) {
   .problem-bullet:hover {
     transform: none;
-  }
-  .hero-cursor-glow {
-    display: none;
   }
 }

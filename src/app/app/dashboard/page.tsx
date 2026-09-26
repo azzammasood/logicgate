@@ -300,11 +300,12 @@ export default function DashboardPage() {
                 <Skeleton className="h-[96px] w-full max-w-[460px]" />
               ) : (
                 <h2>
-                  Your definitions changed{" "}
+                  Your definitions changed
+                  <br />
                   <em>
                     {kpis.shipped} time{kpis.shipped === 1 ? "" : "s"}
-                  </em>
- in the {rangeLabel}.
+                  </em>{" "}
+                  in the {rangeLabel}.
                 </h2>
               )}
             </div>

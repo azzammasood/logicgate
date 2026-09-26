@@ -4,9 +4,7 @@ import { persist } from "zustand/middleware";
 export type ThemePreset =
   | "logicgate"
   | "abyss"
-  | "gruvbox-light"
   | "mono"
-  | "mono-light"
   | "aubergine";
 
 export type ThemeDef = {
@@ -39,16 +37,6 @@ export const PRESETS: Record<ThemePreset, ThemeDef> = {
     fgMuted: "#8595ad",
     border: "rgba(120,160,220,0.14)",
   },
-  "gruvbox-light": {
-    label: "Whiteboard",
-    accent: "#b57614",
-    background: "#fbf1c7",
-    surface: "#f2e5bc",
-    fg: "#3c3836",
-    fgMuted: "#7c6f64",
-    border: "rgba(60,56,54,0.16)",
-    light: true,
-  },
   mono: {
     label: "Terminal",
     // shadcn "Mono" palette — neutral zinc greys with a near-white accent.
@@ -58,17 +46,6 @@ export const PRESETS: Record<ThemePreset, ThemeDef> = {
     fg: "#fafafa",
     fgMuted: "#a1a1aa",
     border: "rgba(255,255,255,0.10)",
-  },
-  "mono-light": {
-    label: "Notebook",
-    // shadcn "Mono" light — neutral greys on white with a near-black accent.
-    accent: "#18181b",
-    background: "#ffffff",
-    surface: "#f4f4f5",
-    fg: "#09090b",
-    fgMuted: "#71717a",
-    border: "rgba(0,0,0,0.10)",
-    light: true,
   },
   aubergine: {
     label: "Syntax",
@@ -157,12 +134,14 @@ export const useAppearanceStore = create<AppearanceState>()(
     }),
     {
       name: "logicgate-appearance",
-      version: 1,
+      version: 2,
       // v1: DM Mono became the default app font (original design mockup).
       // Move users still on the old Arial default over; explicit picks stay.
+      // v2: the light themes (Whiteboard, Notebook) were removed.
       migrate: (state, version) => {
         const s = state as AppearanceState;
         if (version < 1 && s.font === "arial") s.font = "mono";
+        if (!(s.themePreset in PRESETS)) s.themePreset = "logicgate";
         return s;
       },
     }
