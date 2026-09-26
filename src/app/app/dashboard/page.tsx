@@ -53,7 +53,6 @@ export default function DashboardPage() {
   const [type, setType] = useState<"all" | DriftType>("all");
   const [sort, setSort] = useState<SortKey>("volatile");
   const [query, setQuery] = useState("");
-  const [showRetired, setShowRetired] = useState(false);
   const [selected, setSelected] = useState<{ definitionId: string; versionKey: string } | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -135,7 +134,7 @@ export default function DashboardPage() {
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = all
-      .filter((d) => showRetired || d.status !== "deprecated")
+      .filter((d) => d.status !== "deprecated")
       .filter((d) => type === "all" || d.type === type)
       .filter((d) => d.name.toLowerCase().includes(q));
     const lastDate = (d: DriftDefinition) =>
@@ -147,12 +146,12 @@ export default function DashboardPage() {
       az: (a, b) => a.name.localeCompare(b.name),
     };
     return [...list].sort(sorters[sort]);
-  }, [all, showRetired, type, query, sort, stability]);
+  }, [all, type, query, sort, stability]);
 
   const active = useMemo(() => all.filter((d) => d.status !== "deprecated"), [all]);
   // The bottom cards count the same definitions the KPIs and lanes do, so
   // "who moves the logic" can't disagree with "versions shipped".
-  const scoped = showRetired ? all : active;
+  const scoped = active;
 
   const kpis = useMemo(() => {
     const versions = active.flatMap((d) => d.versions.filter(inRange));
@@ -161,25 +160,14 @@ export default function DashboardPage() {
       d.versions.some((v) => inRange(v) && v.kind !== "pending")
     ).length;
     const withReason = versions.filter((v) => v.reason.trim()).length;
-    const signOffDays = (data?.signOffs ?? [])
-      .filter((s) => new Date(s.date).getTime() >= rangeStart)
-      .map((s) => s.days)
-      .sort((a, b) => a - b);
-    const mid = Math.floor(signOffDays.length / 2);
-    const median = signOffDays.length
-      ? signOffDays.length % 2
-        ? signOffDays[mid]
-        : (signOffDays[mid - 1] + signOffDays[mid]) / 2
-      : null;
     return {
       shipped: shipped.length,
       pending: versions.length - shipped.length,
       changed,
       tracked: active.length,
       reasonPct: versions.length ? Math.round((withReason / versions.length) * 100) : null,
-      median,
     };
-  }, [active, data, rangeStart, inRange]);
+  }, [active, inRange]);
 
   const bars = useMemo(() => {
     const counts = Array(weeks).fill(0) as number[];
@@ -279,7 +267,7 @@ export default function DashboardPage() {
   // Remounting the lanes on a filter change replays their entrance animation,
   // so switching range or type reads as a transition. Deliberately excludes the
   // search box: re-animating on every keystroke is worse than not animating.
-  const renderKey = `${weeks}-${type}-${sort}-${showRetired}`;
+  const renderKey = `${weeks}-${type}-${sort}`;
 
   const selection = useMemo(() => {
     if (!selected) return null;
@@ -306,7 +294,6 @@ export default function DashboardPage() {
           <section className="hero">
             <div>
               <div className="eyebrow">
-                <span className="live" />
                 Logic drift · {rangeLabel}
               </div>
               {isLoading ? (
@@ -317,14 +304,9 @@ export default function DashboardPage() {
                   <em>
                     {kpis.shipped} time{kpis.shipped === 1 ? "" : "s"}
                   </em>
-                  <br />
-                  in the {rangeLabel}.
+ in the {rangeLabel}.
                 </h2>
               )}
-              <p>
-                Each lane is a definition and each dot a version. Long quiet lanes are logic you
-                can trust. Clusters of dots are where the arguments are.
-              </p>
             </div>
             <div className="kpis">
               <div className="kpi">
@@ -343,11 +325,6 @@ export default function DashboardPage() {
                 </b>
                 <span>with a written reason</span>
                 <small>no silent edits</small>
-              </div>
-              <div className="kpi">
-                <b>{kpis.median === null ? "—" : `${kpis.median.toFixed(1)}d`}</b>
-                <span>median sign-off time</span>
-                <small>proposal → approval</small>
               </div>
             </div>
           </section>
@@ -387,15 +364,6 @@ export default function DashboardPage() {
               ))}
             </div>
             <div className="tb-right">
-              <button
-                type="button"
-                className={`toggle${showRetired ? " on" : ""}`}
-                aria-pressed={showRetired}
-                onClick={() => setShowRetired((v) => !v)}
-              >
-                <span className="sw" />
-                Show retired
-              </button>
               <div className="field">
                 <ArrowUpDown className="h-4 w-4" />
                 <label className="sr-only" htmlFor="drift-sort">

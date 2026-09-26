@@ -138,7 +138,6 @@ export function AppearanceSettings() {
   return (
     <div className="space-y-8">
       <ThemeSettings />
-      <FontSettings />
       <LanguageSettings />
     </div>
   );

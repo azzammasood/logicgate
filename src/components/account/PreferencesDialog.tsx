@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ThemeSettings, FontSettings } from "@/components/settings/AppearanceSettings";
+import { ThemeSettings } from "@/components/settings/AppearanceSettings";
 import { AiSettingsSection } from "@/components/account/AiSettingsSection";
 import { useUiStore } from "@/stores/ui";
 import { cn } from "@/lib/utils";
@@ -65,10 +65,7 @@ export function PreferencesDialog({
           <div className="min-h-0 flex-1 overflow-y-auto p-5">
             {section === "ai" && <AiSettingsSection />}
             {section === "appearance" && (
-              <div className="space-y-8">
-                <ThemeSettings />
-                <FontSettings />
-              </div>
+              <ThemeSettings />
             )}
           </div>
         </div>

@@ -44,7 +44,7 @@
   --surface: #161920;
   --accent: #4ade80;
   --border-color: rgba(255, 255, 255, 0.1);
-  --app-font: var(--font-dm-mono), "Fira Code", ui-monospace, monospace;
+  --app-font: var(--font-auth-mono), "JetBrains Mono", ui-monospace, monospace;
   --font-display: var(--font-syne), sans-serif;
   --radius: 0.5rem;
 

@@ -4,9 +4,18 @@ import { HeroCta } from "@/components/marketing/home/HeroCta";
 import { HeroTerminal } from "@/components/marketing/home/HeroTerminal";
 
 export function HeroSection() {
+  // Feed the pointer position to the background spotlight as CSS vars
+  // (no React state, so moving the mouse never re-renders the hero).
+  function trackCursor(e: React.PointerEvent<HTMLElement>) {
+    const r = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
+  }
+
   return (
-    <section className="hero-section" aria-label="Hero">
+    <section className="hero-section" aria-label="Hero" onPointerMove={trackCursor}>
       <div className="hero-glow" aria-hidden />
+      <div className="hero-cursor-glow" aria-hidden />
       <div className="hero-content hero-content-split">
         <div className="hero-copy">
           <p className="hero-eyebrow hero-fade-up hero-fade-up-0 marketing-mono">

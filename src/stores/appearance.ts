@@ -108,6 +108,9 @@ export const FONTS: Record<FontId, { label: string; stack: string }> = {
   syne: { label: "Syne", stack: "var(--font-syne), sans-serif" },
 };
 
+export const APP_FONT_STACK =
+  "var(--font-auth-mono), 'JetBrains Mono', ui-monospace, monospace";
+
 export type LanguageId =
   | "en"
   | "ur"
@@ -195,8 +198,10 @@ export function applyAppearanceToDocument(
   root.style.setProperty("--fg-muted", preset.fgMuted);
   root.style.setProperty("--border-color", preset.border);
 
-  const fontDef = FONTS[font] ?? FONTS.arial;
-  root.style.setProperty("--app-font", fontDef.stack);
+  // The interface font is fixed (no longer user-selectable): JetBrains Mono —
+  // clean at UI sizes while keeping the terminal feel of the marketing site.
+  void font;
+  root.style.setProperty("--app-font", APP_FONT_STACK);
 
   if (language) root.setAttribute("lang", language);
 }

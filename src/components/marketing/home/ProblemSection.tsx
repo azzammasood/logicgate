@@ -20,7 +20,9 @@ function ProblemLine({
 }) {
   return (
     <div
+      className="problem-bullet"
       style={{
+        ["--bullet-accent" as string]: strikethrough ? "#f87171" : "#4ade80",
         background: "var(--bg3)",
         border: "1px solid var(--border)",
         borderRadius: 7,

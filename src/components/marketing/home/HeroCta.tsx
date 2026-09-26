@@ -6,15 +6,13 @@ import { useSessionUser } from "@/lib/supabase/useSessionUser";
 export function HeroCta() {
   const { user } = useSessionUser();
 
+  // Signed in: the nav already says "Continue as <name>", so the hero offers
+  // a single dashboard link rather than two buttons to the same place.
   if (user) {
-    const firstName = user.name.split(" ")[0];
     return (
       <div className="hero-cta-row">
         <Link href="/app/dashboard" className="hero-cta-primary">
-          Continue as {firstName} →
-        </Link>
-        <Link href="/app/dashboard" className="hero-cta-secondary">
-          Go to dashboard
+          Open your dashboard →
         </Link>
       </div>
     );

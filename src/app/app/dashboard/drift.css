@@ -52,17 +52,17 @@
 }
 .drift-page .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  gap: 44px;
-  align-items: end;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 40px;
+  align-items: center;
   margin-bottom: 28px;
 }
 .drift-page .hero h2 {
   font-family: var(--sat);
-  font-weight: 800;
-  font-size: clamp(30px, 3vw, 42px);
-  letter-spacing: -1.6px;
-  line-height: 1.12;
+  font-weight: 500;
+  font-size: clamp(24px, 2.3vw, 32px);
+  letter-spacing: -0.6px;
+  line-height: 1.25;
   text-wrap: balance;
 }
 /* The count and its unit are one phrase — never break "14 times" across lines. */
@@ -80,7 +80,7 @@
 }
 .drift-page .kpis {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1px;
   background: var(--b);
   border: 1px solid var(--b);
@@ -93,8 +93,8 @@
 }
 .drift-page .kpi b {
   font-family: var(--sat);
-  font-weight: 800;
-  font-size: 30px;
+  font-weight: 600;
+  font-size: 26px;
   letter-spacing: -1px;
   display: block;
   line-height: 1.15;
