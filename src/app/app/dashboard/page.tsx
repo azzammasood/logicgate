@@ -293,9 +293,6 @@ export default function DashboardPage() {
           {/* ---------- hero ---------- */}
           <section className="hero">
             <div>
-              <div className="eyebrow">
-                Logic drift · {rangeLabel}
-              </div>
               {isLoading ? (
                 <Skeleton className="h-[96px] w-full max-w-[460px]" />
               ) : (
@@ -464,7 +461,12 @@ export default function DashboardPage() {
               </>
             )}
 
-            <div className="lanes">
+            {/* Hold the lane area at the unfiltered height so filtering down to
+                nothing doesn't resize the card and shove the cards below. */}
+            <div
+              className="lanes"
+              style={data && active.length ? { minHeight: active.length * 64 } : undefined}
+            >
               {!data ? (
                 <div className="space-y-2 p-5">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -472,15 +474,21 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : visible.length === 0 ? (
-                <div className="empty">
-                  <SearchX className="mx-auto h-7 w-7 text-[var(--text3)]" />
-                  <b>{all.length ? "No definitions match" : "No definitions yet"}</b>
-                  <span>
-                    {all.length
-                      ? "Try another type, a wider range, or clear the search."
-                      : "Create your first definition and its versions will show up here."}
-                  </span>
-                </div>
+                all.length ? (
+                  <div className="empty compact" style={{ minHeight: active.length * 64 }}>
+                    <SearchX className="h-4 w-4 shrink-0 text-[var(--text3)]" />
+                    <span>
+                      <b>No definitions match.</b> Try another type, a wider range, or clear
+                      the search.
+                    </span>
+                  </div>
+                ) : (
+                  <div className="empty">
+                    <SearchX className="mx-auto h-7 w-7 text-[var(--text3)]" />
+                    <b>No definitions yet</b>
+                    <span>Create your first definition and its versions will show up here.</span>
+                  </div>
+                )
               ) : (
                 <>
                   <div

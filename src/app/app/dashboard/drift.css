@@ -585,6 +585,18 @@
 .drift-page .empty span {
   font-size: 13px;
 }
+.drift-page .empty.compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 20px;
+}
+.drift-page .empty.compact b {
+  display: inline;
+  margin: 0;
+  font-size: 13px;
+}
 
 /* ---------- bottom ---------- */
 .drift-page .bottom {

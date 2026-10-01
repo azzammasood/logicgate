@@ -5,7 +5,8 @@ export type ThemePreset =
   | "logicgate"
   | "abyss"
   | "mono"
-  | "aubergine";
+  | "aubergine"
+  | "notebook";
 
 export type ThemeDef = {
   label: string;
@@ -22,27 +23,27 @@ export const PRESETS: Record<ThemePreset, ThemeDef> = {
   logicgate: {
     label: "LogicGate",
     accent: "#4ade80",
-    background: "#0d0f14",
-    surface: "#161920",
-    fg: "#e8eaed",
-    fgMuted: "#9aa0aa",
+    background: "#090b0f",
+    surface: "#12151b",
+    fg: "#f0f2f4",
+    fgMuted: "#a2a8b2",
     border: "rgba(255,255,255,0.10)",
   },
   abyss: {
     label: "Null Void",
     accent: "#38bdf8",
-    background: "#06080f",
-    surface: "#0d1320",
-    fg: "#dbe7f5",
-    fgMuted: "#8595ad",
+    background: "#04060b",
+    surface: "#0a0f1a",
+    fg: "#e4eef9",
+    fgMuted: "#8f9fb6",
     border: "rgba(120,160,220,0.14)",
   },
   mono: {
     label: "Terminal",
     // shadcn "Mono" palette — neutral zinc greys with a near-white accent.
     accent: "#e4e4e7",
-    background: "#09090b",
-    surface: "#18181b",
+    background: "#060607",
+    surface: "#131315",
     fg: "#fafafa",
     fgMuted: "#a1a1aa",
     border: "rgba(255,255,255,0.10)",
@@ -50,11 +51,22 @@ export const PRESETS: Record<ThemePreset, ThemeDef> = {
   aubergine: {
     label: "Syntax",
     accent: "#c084fc",
-    background: "#120d18",
-    surface: "#1e1528",
-    fg: "#ede4f7",
-    fgMuted: "#a594b8",
+    background: "#0d0911",
+    surface: "#181120",
+    fg: "#f3ebfb",
+    fgMuted: "#ad9dc0",
     border: "rgba(255,255,255,0.10)",
+  },
+  notebook: {
+    label: "Notebook",
+    // Soft, low-contrast light theme — warm grey paper rather than white.
+    accent: "#2f7a4b",
+    background: "#dcdad5",
+    surface: "#e6e4df",
+    fg: "#2b2a27",
+    fgMuted: "#66645e",
+    border: "rgba(40,36,30,0.13)",
+    light: true,
   },
 };
 

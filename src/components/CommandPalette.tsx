@@ -45,9 +45,12 @@ const GRID_COLS = 2;
 // overrides force border-white/* and bg-white/* to neutral values and would
 // otherwise wash out an accent border/fill entirely.
 const tile =
-  "flex cursor-pointer flex-row items-center gap-2.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-white/80 transition-colors hover:border-white/20 aria-selected:ring-2 aria-selected:ring-[var(--accent)] aria-selected:bg-[var(--accent)]/10 aria-selected:text-[var(--accent)]";
-const gridClass = "grid grid-cols-2 gap-1.5";
-const headingClass = "px-1 pb-2 pt-1 text-xs text-white/40";
+  "flex cursor-pointer flex-row items-center gap-2.5 rounded-lg border border-white/10 bg-white/[0.03] px-3.5 py-3 text-sm text-white/80 transition-colors hover:border-white/20 hover:bg-white/[0.05] aria-selected:ring-1 aria-selected:ring-inset aria-selected:ring-[var(--accent)]/50 aria-selected:bg-[var(--accent)]/[0.06] aria-selected:text-[var(--fg)]";
+const gridClass = "grid grid-cols-2 gap-2";
+// Styles the group wrapper plus cmdk's generated heading element, so labels
+// get their own row with breathing room instead of crowding the tiles.
+const headingClass =
+  "mb-4 last:mb-0 [&_[cmdk-group-heading]]:mb-2 [&_[cmdk-group-heading]]:px-1 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-white/40";
 
 type DefinitionRow = { id: string; name: string; type: string };
 
@@ -173,7 +176,7 @@ export function CommandPalette() {
           placeholder="Search or run a quick action…"
           className="w-full border-b border-white/10 bg-transparent px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
         />
-        <Command.List className="max-h-[62vh] overflow-y-auto p-3">
+        <Command.List className="max-h-[62vh] overflow-y-auto p-4">
           <Command.Empty className="py-6 text-center text-sm text-white/40">
             No results.
           </Command.Empty>
