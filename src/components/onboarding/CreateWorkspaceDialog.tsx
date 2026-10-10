@@ -19,6 +19,8 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   required?: boolean;
   onCreated: (workspaceId: string) => void;
+  /** Render as a plain panel (full-page onboarding) instead of a modal. */
+  inline?: boolean;
 };
 
 type VerifiedInvite = {
@@ -34,6 +36,7 @@ export function CreateWorkspaceDialog({
   onOpenChange,
   required,
   onCreated,
+  inline,
 }: Props) {
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -168,21 +171,12 @@ export function CreateWorkspaceDialog({
     await createWorkspace(name.trim());
   }
 
-  return (
-    <Dialog open={open} onOpenChange={required ? undefined : onOpenChange}>
-      <DialogContent
-        className="border-white/10 bg-[#161920] sm:max-w-md"
-        showCloseButton={!required}
-      >
-        <DialogHeader>
-          <DialogTitle>{required ? "Set up your workspace" : "Add an organization"}</DialogTitle>
-          <DialogDescription className="text-white/50">
-            {required
-              ? "Were you invited to an organization? Paste the invite to join it. Otherwise create one, or continue solo with a personal workspace."
-              : "Create a new organization or join one you've been invited to."}
-          </DialogDescription>
-        </DialogHeader>
+  const description = required
+    ? "Create an organization for your team, join one with an invite, or work solo in a personal workspace."
+    : "Create a new organization or join one you've been invited to.";
 
+  const body = (
+    <>
         <div className="mb-4 grid grid-cols-2 gap-1 rounded-lg border border-white/10 bg-[#0d0f14] p-1">
           {(["create", "join"] as const).map((m) => (
             <button
@@ -283,24 +277,6 @@ export function CreateWorkspaceDialog({
               </Button>
             )}
 
-            {required && (
-              <>
-                <div className="my-4 flex items-center gap-3 text-[10px] uppercase tracking-wider text-white/25">
-                  <span className="h-px flex-1 bg-white/10" />
-                  or
-                  <span className="h-px flex-1 bg-white/10" />
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={personalLoading || joining}
-                  onClick={() => createWorkspace("Personal workspace", { personal: true })}
-                  className="w-full border-white/10"
-                >
-                  {personalLoading ? "Setting up…" : "No invite — continue solo"}
-                </Button>
-              </>
-            )}
           </div>
         ) : (
           <>
@@ -357,28 +333,56 @@ export function CreateWorkspaceDialog({
             {loading ? "Creating…" : "Create organization"}
           </Button>
         </form>
-
-        <div className="my-4 flex items-center gap-3 text-[10px] uppercase tracking-wider text-white/25">
-          <span className="h-px flex-1 bg-white/10" />
-          or
-          <span className="h-px flex-1 bg-white/10" />
-        </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          disabled={loading || personalLoading}
-          onClick={() => createWorkspace("Personal workspace", { personal: true })}
-          className="w-full border-white/10"
-        >
-          {personalLoading ? "Setting up…" : "Continue with a personal workspace"}
-        </Button>
-        <p className="mt-2 text-center text-[11px] text-white/30">
-          Just for you — record and version your own logics. You can create an
-          organization later.
-        </p>
           </>
         )}
+
+        {/* One solo option, shared by both tabs, only during first-time setup. */}
+        {required && (
+          <>
+            <div className="my-4 flex items-center gap-3 text-[10px] uppercase tracking-wider text-white/25">
+              <span className="h-px flex-1 bg-white/10" />
+              or
+              <span className="h-px flex-1 bg-white/10" />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={loading || personalLoading || joining}
+              onClick={() => createWorkspace("Personal workspace", { personal: true })}
+              className="w-full border-white/10"
+            >
+              {personalLoading ? "Setting up…" : "Continue with a personal workspace"}
+            </Button>
+            <p className="mt-2 text-center text-[11px] text-white/30">
+              Just for you — record and version your own logic. You can create or
+              join an organization later.
+            </p>
+          </>
+        )}
+    </>
+  );
+
+  if (inline) {
+    return (
+      <div className="w-full rounded-xl border border-white/10 bg-[#161920] p-6">
+        <h2 className="text-lg font-semibold text-white">Set up your workspace</h2>
+        <p className="mb-5 mt-1 text-sm text-white/50">{description}</p>
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={required ? undefined : onOpenChange}>
+      <DialogContent
+        className="border-white/10 bg-[#161920] sm:max-w-md"
+        showCloseButton={!required}
+      >
+        <DialogHeader>
+          <DialogTitle>{required ? "Set up your workspace" : "Add an organization"}</DialogTitle>
+          <DialogDescription className="text-white/50">{description}</DialogDescription>
+        </DialogHeader>
+        {body}
       </DialogContent>
     </Dialog>
   );

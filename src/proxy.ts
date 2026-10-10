@@ -55,6 +55,15 @@ export async function proxy(request: NextRequest) {
   const limited = rateLimitResponse(pathname, request);
   if (limited) return limited;
 
+  // Supabase falls back to the Site URL root with `?code=` when an OAuth
+  // redirect isn't allowlisted. Forward it server-side so the landing page
+  // never flashes mid-sign-in.
+  if (pathname === "/" && request.nextUrl.searchParams.has("code")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    return NextResponse.redirect(url);
+  }
+
   const response = await updateSession(request);
 
   if (isPublic(pathname)) return response;

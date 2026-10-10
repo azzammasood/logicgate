@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AnimatedLogo } from "@/components/landing/AnimatedLogo";
 import { useWorkspaceStore } from "@/stores/workspace";
-import { CreateWorkspaceDialog } from "@/components/onboarding/CreateWorkspaceDialog";
+import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const workspaceId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
-  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const { data, isLoading, isSuccess } = useQuery({
     queryKey: ["auth-me"],
@@ -20,6 +19,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       return json.data as {
         user: { id: string; name: string; email: string };
         workspaces: { id: string; name: string; slug: string }[];
+        needsProfile?: boolean;
       };
     },
     staleTime: 60_000,
@@ -28,15 +28,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isSuccess || !data) return;
     const workspaces = data.workspaces;
-    if (workspaces.length === 0) {
-      setShowOnboarding(true);
-      return;
-    }
+    if (workspaces.length === 0) return;
     const valid = workspaces.some((w) => w.id === workspaceId);
     if (!workspaceId || !valid) {
       setWorkspace(workspaces[0].id);
     }
-    setShowOnboarding(false);
   }, [isSuccess, data, workspaceId, setWorkspace]);
 
   if (isLoading) {
@@ -48,18 +44,18 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return (
-    <>
-      {children}
-      <CreateWorkspaceDialog
-        open={showOnboarding}
-        onOpenChange={setShowOnboarding}
-        required
-        onCreated={(id) => {
+  // First run: a full-page setup instead of a modal over an empty dashboard.
+  if (data && data.workspaces.length === 0) {
+    return (
+      <OnboardingFlow
+        needsProfile={!!data.needsProfile}
+        defaultName={data.user.name}
+        onWorkspaceReady={(id) => {
           setWorkspace(id);
-          setShowOnboarding(false);
         }}
       />
-    </>
-  );
+    );
+  }
+
+  return <>{children}</>;
 }

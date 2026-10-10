@@ -42,7 +42,13 @@ export async function POST(request: Request) {
       return apiResponse(null, { error: parsed.error.message, status: 400 });
     }
 
-    const slug = parsed.data.slug ?? slugify(parsed.data.name);
+    // Slugs are globally unique, so common names ("Personal workspace") would
+    // collide across users — append a short random suffix when taken.
+    const base = parsed.data.slug ?? (slugify(parsed.data.name) || "workspace");
+    let slug = base;
+    while (await prisma.workspace.findUnique({ where: { slug }, select: { id: true } })) {
+      slug = `${base}-${Math.random().toString(36).slice(2, 8)}`;
+    }
     const workspace = await prisma.workspace.create({
       data: {
         name: parsed.data.name,

@@ -16,8 +16,13 @@ export async function GET() {
       return apiResponse(null, { error: "Unauthorized", status: 401 });
     }
 
-    const meta = authUser.user_metadata as { name?: string; role?: string };
-    const name = meta.name ?? authUser.email.split("@")[0];
+    const meta = authUser.user_metadata as {
+      name?: string;
+      full_name?: string;
+      role?: string;
+    };
+    // OAuth providers (Google/GitHub) supply `full_name`, never our `role`.
+    const name = meta.name ?? meta.full_name ?? authUser.email.split("@")[0];
     const roleValue =
       meta.role && meta.role in UserRole
         ? (meta.role as UserRole)
@@ -45,6 +50,9 @@ export async function GET() {
 
     return apiResponse({
       user,
+      // Email signups set name + role on the form; OAuth signups skip that,
+      // so they confirm their profile during onboarding instead.
+      needsProfile: !meta.role && workspaces.length === 0,
       workspaces: workspaces.map((m) => ({
         id: m.workspace.id,
         name: m.workspace.name,
