@@ -37,6 +37,8 @@ type ChangeRequestRow = {
   createdAt: string;
   definition: DefFields;
   proposedSnapshot?: { definition?: Partial<DefFields>; conditions?: Cond[] } | null;
+  /** The live version the request was raised against (server-computed). */
+  currentSnapshot?: { definition?: Partial<DefFields>; conditions?: Cond[] } | null;
   requestedBy: { name: string; email: string };
   reviewedBy?: { name: string } | null;
   reviewNote?: string | null;
@@ -70,7 +72,7 @@ function computeDiff(cr: ChangeRequestRow) {
   const diffs: { label: string; from: string; to: string }[] = [];
   if (proposed) {
     for (const [key, label] of DIFF_FIELDS) {
-      const from = cr.definition[key] ?? null;
+      const from = (cr.currentSnapshot?.definition ?? cr.definition)[key] ?? null;
       const to = proposed[key] ?? null;
       if (String(from ?? "") !== String(to ?? "")) {
         diffs.push({ label, from: pretty(from), to: pretty(to) });
@@ -78,7 +80,7 @@ function computeDiff(cr: ChangeRequestRow) {
     }
   }
   // Condition changes (added / removed / value-changed) — the common case.
-  const cur = condMap(cr.definition.conditions);
+  const cur = condMap(cr.currentSnapshot?.conditions ?? cr.definition.conditions);
   const next = condMap(cr.proposedSnapshot?.conditions);
   const fields = new Set([...cur.keys(), ...next.keys()]);
   for (const f of fields) {

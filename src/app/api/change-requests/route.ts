@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { apiResponse, requireSessionUser, requireWorkspaceMember } from "@/lib/api";
 import { createChangeRequestSchema } from "@/lib/validators";
 import { notifyApprovalRequest } from "@/lib/notifications";
+import { baselineSnapshot, buildSnapshot, definitionInclude, normalizeSnapshot } from "@/lib/definitions";
 
 export async function GET(request: Request) {
   try {
@@ -32,14 +33,28 @@ export async function GET(request: Request) {
         },
       },
       include: {
-        definition: { include: { conditions: { orderBy: { order: "asc" } } } },
+        definition: { include: definitionInclude },
         requestedBy: true,
         reviewedBy: true,
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return apiResponse(requests);
+    // Diff each request against the live version it was raised against, not
+    // the definition row (which holds the autosaved draft).
+    const withBaselines = await Promise.all(
+      requests.map(async (cr) => {
+        const draft = buildSnapshot(cr.definition, cr.definition.conditions, cr.definition.owners);
+        const currentSnapshot = await baselineSnapshot(cr.definitionId, cr.createdAt, draft);
+        return {
+          ...cr,
+          currentSnapshot,
+          proposedSnapshot: normalizeSnapshot(cr.proposedSnapshot, draft),
+        };
+      })
+    );
+
+    return apiResponse(withBaselines);
   } catch (e) {
     console.error(e);
     return apiResponse(null, { error: "Server error", status: 500 });
@@ -60,6 +75,7 @@ export async function POST(request: Request) {
 
     const definition = await prisma.definition.findUnique({
       where: { id: parsed.data.definitionId },
+      include: definitionInclude,
     });
     if (!definition) {
       return apiResponse(null, { error: "Definition not found", status: 404 });
@@ -73,10 +89,17 @@ export async function POST(request: Request) {
         definitionId: parsed.data.definitionId,
         requestedById: user.id,
         changeDescription: parsed.data.changeDescription,
-        proposedSnapshot: parsed.data.proposedSnapshot as object,
+        // Snapshot the saved draft server-side so the stored shape always
+        // matches what review/approval expect, whatever the client sends.
+        // Approval publishes it, so record that rather than the draft status.
+        proposedSnapshot: buildSnapshot(
+          { ...definition, status: "PUBLISHED" },
+          definition.conditions,
+          definition.owners
+        ) as unknown as object,
         status: "PENDING",
       },
-      include: { definition: true, requestedBy: true },
+      include: { requestedBy: true },
     });
 
     await prisma.definition.update({

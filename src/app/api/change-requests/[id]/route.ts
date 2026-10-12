@@ -4,7 +4,12 @@ import { patchChangeRequestSchema } from "@/lib/validators";
 import { canApprove } from "@/lib/permissions";
 import { createVersionSnapshot } from "@/lib/versioning";
 import { firePublishWebhook } from "@/lib/integrations";
-import { buildSnapshot, definitionInclude, type DefinitionSnapshot } from "@/lib/definitions";
+import {
+  baselineSnapshot,
+  buildSnapshot,
+  definitionInclude,
+  normalizeSnapshot,
+} from "@/lib/definitions";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -30,16 +35,15 @@ export async function GET(_request: Request, { params }: Params) {
     const memberResult = await requireWorkspaceMember(user.id, cr.definition.workspaceId);
     if ("error" in memberResult) return memberResult.error;
 
-    const currentSnapshot = buildSnapshot(
-      cr.definition,
-      cr.definition.conditions,
-      cr.definition.owners
-    );
+    const draft = buildSnapshot(cr.definition, cr.definition.conditions, cr.definition.owners);
+    // "Current (live)" is the last published version before this request —
+    // the definition row itself already holds the autosaved draft.
+    const currentSnapshot = await baselineSnapshot(cr.definitionId, cr.createdAt, draft);
 
     return apiResponse({
       ...cr,
       currentSnapshot,
-      proposedSnapshot: cr.proposedSnapshot,
+      proposedSnapshot: normalizeSnapshot(cr.proposedSnapshot, draft),
     });
   } catch (e) {
     console.error(e);
@@ -56,7 +60,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
     const cr = await prisma.changeRequest.findUnique({
       where: { id },
-      include: { definition: true },
+      include: { definition: { include: definitionInclude } },
     });
     if (!cr) {
       return apiResponse(null, { error: "Not found", status: 404 });
@@ -78,7 +82,11 @@ export async function PATCH(request: Request, { params }: Params) {
     }
 
     if (parsed.data.status === "APPROVED") {
-      const snapshot = cr.proposedSnapshot as unknown as DefinitionSnapshot;
+      // Older requests stored a flat snapshot; normalise so approval can't crash.
+      const snapshot = normalizeSnapshot(
+        cr.proposedSnapshot,
+        buildSnapshot(cr.definition, cr.definition.conditions, cr.definition.owners)
+      );
       const def = snapshot.definition;
 
       await prisma.$transaction(async (tx) => {
