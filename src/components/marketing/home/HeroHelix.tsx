@@ -64,12 +64,16 @@ const ANGLE = 30;
 const RADIUS = 340;
 const DWELL_MS = 2600;
 const LIVE_DWELL_MS = 4200;
+/** Scrolling this far down the page winds the helix all the way to the live version. */
+const SCROLL_TO_LIVE_PX = 360;
 
 /**
  * A definition's version history as a 3D helix of cards. It plays forward
  * from v1 to the live version, rests there, then rewinds. The current card
- * always sits square-on at the front so its text stays crisp. The pointer
- * tilts the helix; scrolling tips it back. Hover pauses the playback.
+ * always sits square-on at the front so its text stays crisp. Scrolling
+ * takes over from playback and winds the helix forward to the live version
+ * (and back again as you scroll up), while a parallax drift keeps it on
+ * screen. The pointer tilts it; hover pauses playback.
  */
 export function HeroHelix() {
   const helixRef = useRef<HTMLDivElement>(null);
@@ -80,8 +84,13 @@ export function HeroHelix() {
     const helix = helixRef.current;
     if (!helix) return;
 
-    const cur = { i: reduced ? LAST : 0, mx: 0, my: 0, p: 0 };
-    const tgt = { i: cur.i, mx: 0, my: 0, p: 0 };
+    const cur = { i: reduced ? LAST : 0, mx: 0, my: 0 };
+    const tgt = { i: cur.i, mx: 0, my: 0 };
+    // Raw (unsmoothed) scroll offset: the parallax must track the page exactly
+    // or the helix wobbles against the scroll.
+    let scrollPx = 0;
+    // Version the helix was on when scrolling began; scroll winds from here.
+    let scrollBase: number | null = null;
     let raf = 0;
     let running = false;
     let visible = true;
@@ -90,10 +99,11 @@ export function HeroHelix() {
     let front = -1;
 
     const apply = () => {
-      const tilt = 10 - cur.my * 6 + cur.p * 14;
+      const tilt = 10 - cur.my * 6;
       const yaw = -cur.i * ANGLE + cur.mx * 10;
+      const drift = Math.min(scrollPx * 0.5, 280);
       helix.style.transform =
-        `translateY(${cur.p * 60}px) rotateX(${tilt}deg) translateZ(${-RADIUS}px) ` +
+        `translateY(${drift}px) rotateX(${tilt}deg) translateZ(${-RADIUS}px) ` +
         `translateY(${cur.i * STEP}px) rotateY(${yaw}deg)`;
       const nearest = Math.round(cur.i);
       cardsRef.current.forEach((card, k) => {
@@ -111,7 +121,7 @@ export function HeroHelix() {
 
     const frame = () => {
       let settled = true;
-      for (const k of ["i", "mx", "my", "p"] as const) {
+      for (const k of ["i", "mx", "my"] as const) {
         const d = tgt[k] - cur[k];
         if (Math.abs(d) > 0.002) {
           cur[k] += d * (k === "i" ? 0.075 : 0.08);
@@ -134,7 +144,7 @@ export function HeroHelix() {
       if (reduced) return;
       const atLive = tgt.i === LAST;
       timer = setTimeout(() => {
-        if (!paused && visible) {
+        if (!paused && visible && scrollBase === null) {
           tgt.i = atLive ? 0 : tgt.i + 1;
           wake();
         }
@@ -148,7 +158,18 @@ export function HeroHelix() {
       wake();
     };
     const onScroll = () => {
-      tgt.p = Math.min(1, Math.max(0, window.scrollY / (window.innerHeight * 0.6)));
+      scrollPx = Math.max(0, window.scrollY);
+      if (scrollPx > 4) {
+        // Scrolling takes over: wind from the current version to the live one.
+        if (scrollBase === null) scrollBase = Math.round(cur.i);
+        const t = Math.min(1, scrollPx / SCROLL_TO_LIVE_PX);
+        tgt.i = scrollBase + (LAST - scrollBase) * t;
+      } else if (scrollBase !== null) {
+        // Back at the top: settle on a whole version and resume playback.
+        tgt.i = scrollBase;
+        scrollBase = null;
+        schedule();
+      }
       wake();
     };
     const scene = helix.parentElement!;
@@ -165,6 +186,7 @@ export function HeroHelix() {
     });
     io.observe(scene);
 
+    onScroll();
     apply();
     schedule();
     if (!reduced) {
