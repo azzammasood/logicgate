@@ -29,10 +29,16 @@ export function HeroDecodeField() {
     let rows = 0;
     let heat = new Float32Array(0);
     let chars = new Uint8Array(0);
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const pointer = { x: -1e4, y: -1e4, active: false };
+    // Only lit cells are tracked and drawn, so cost scales with the trail,
+    // not the size of the hero.
+    let lit = new Uint8Array(0);
+    let active: number[] = [];
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const pointer = { x: 0, y: 0, moved: false };
     const waves: { x: number; y: number; r: number }[] = [];
     let raf = 0;
+    let running = false;
+    let visible = true;
     let frame = 0;
 
     function resize() {
@@ -45,6 +51,8 @@ export function HeroDecodeField() {
       cols = Math.ceil(width / CELL);
       rows = Math.ceil(height / CELL);
       heat = new Float32Array(cols * rows);
+      lit = new Uint8Array(cols * rows);
+      active = [];
       chars = new Uint8Array(cols * rows).map(() => (Math.random() * GLYPHS.length) | 0);
     }
 
@@ -61,13 +69,22 @@ export function HeroDecodeField() {
           if (t <= 0) continue;
           const i = r * cols + c;
           heat[i] = Math.min(1, Math.max(heat[i], t * t * amount));
+          if (!lit[i]) {
+            lit[i] = 1;
+            active.push(i);
+          }
         }
       }
     }
 
     function tick() {
       frame++;
-      if (pointer.active) energize(pointer.x, pointer.y, RADIUS, 1);
+      // The lens only charges cells while the pointer moves; at rest the
+      // trail fades out and the loop goes to sleep.
+      if (pointer.moved) {
+        energize(pointer.x, pointer.y, RADIUS, 1);
+        pointer.moved = false;
+      }
       for (let w = waves.length - 1; w >= 0; w--) {
         waves[w].r += 9;
         energize(waves[w].x, waves[w].y, waves[w].r, 0.9, 26);
@@ -78,9 +95,16 @@ export function HeroDecodeField() {
       ctx!.font = `500 12px var(--font-jetbrains), "JetBrains Mono", monospace`;
       ctx!.textAlign = "center";
       ctx!.textBaseline = "middle";
-      for (let i = 0; i < heat.length; i++) {
+      for (let k = active.length - 1; k >= 0; k--) {
+        const i = active[k];
         const h = heat[i];
-        if (h < 0.02) continue;
+        if (h < 0.02) {
+          heat[i] = 0;
+          lit[i] = 0;
+          active[k] = active[active.length - 1];
+          active.pop();
+          continue;
+        }
         // Hot glyphs scramble; cooling ones settle on their final character.
         if (h > 0.45 && (frame + i) % 4 === 0) chars[i] = (Math.random() * GLYPHS.length) | 0;
         const x = (i % cols) * CELL + CELL / 2;
@@ -92,6 +116,17 @@ export function HeroDecodeField() {
         ctx!.fillText(GLYPHS[chars[i]], x, y);
         heat[i] = h * DECAY;
       }
+
+      if (active.length || waves.length || pointer.moved) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        running = false;
+      }
+    }
+
+    function wake() {
+      if (running || !visible) return;
+      running = true;
       raf = requestAnimationFrame(tick);
     }
 
@@ -99,28 +134,34 @@ export function HeroDecodeField() {
       const r = host!.getBoundingClientRect();
       pointer.x = e.clientX - r.left;
       pointer.y = e.clientY - r.top;
-      pointer.active = true;
-    }
-    function onLeave() {
-      pointer.active = false;
+      pointer.moved = true;
+      wake();
     }
     function onDown(e: PointerEvent) {
       const r = host!.getBoundingClientRect();
       waves.push({ x: e.clientX - r.left, y: e.clientY - r.top, r: 0 });
+      wake();
     }
 
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(host);
-    host.addEventListener("pointermove", onMove);
-    host.addEventListener("pointerleave", onLeave);
+    // Don't animate while the hero is scrolled out of view.
+    const io = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (!visible) {
+        cancelAnimationFrame(raf);
+        running = false;
+      }
+    });
+    io.observe(host);
+    host.addEventListener("pointermove", onMove, { passive: true });
     host.addEventListener("pointerdown", onDown);
-    raf = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      io.disconnect();
       host.removeEventListener("pointermove", onMove);
-      host.removeEventListener("pointerleave", onLeave);
       host.removeEventListener("pointerdown", onDown);
     };
   }, [reduced]);

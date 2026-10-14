@@ -194,13 +194,24 @@ export function PseudocodeSidebar() {
                 typed.phase === "compiling" && "opacity-45"
               )}
             >
-              <PseudocodeBlock
-                code={typed.text}
-                copyText={targetCode}
-                caret={typed.phase !== "idle"}
-                language={lang}
-                compact
-              />
+              {/* The finished code, laid out invisibly, fixes the box's height;
+                  the typed text overlays it. Otherwise typing grows the box
+                  line by line and shoves the version history down. */}
+              <div className="relative">
+                <div className="invisible" aria-hidden>
+                  <PseudocodeBlock code={targetCode} language={lang} compact />
+                </div>
+                <div className="absolute inset-0">
+                  <PseudocodeBlock
+                    code={typed.text}
+                    copyText={targetCode}
+                    caret={typed.phase !== "idle"}
+                    language={lang}
+                    compact
+                    className="h-full"
+                  />
+                </div>
+              </div>
             </div>
           ) : (
             <div className="h-[180px] rounded-lg border border-[var(--border-color)] bg-[var(--background,#0d0f14)]/60" />

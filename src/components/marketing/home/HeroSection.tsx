@@ -2,7 +2,7 @@
 
 import { HeroCta } from "@/components/marketing/home/HeroCta";
 import { HeroDecodeField } from "@/components/marketing/animations/HeroDecodeField";
-import { HeroTerminal } from "@/components/marketing/home/HeroTerminal";
+import { HeroHelix } from "@/components/marketing/home/HeroHelix";
 
 export function HeroSection() {
   return (
@@ -54,7 +54,7 @@ export function HeroSection() {
         </div>
 
         <div className="hero-visual">
-          <HeroTerminal />
+          <HeroHelix />
         </div>
       </div>
     </section>
