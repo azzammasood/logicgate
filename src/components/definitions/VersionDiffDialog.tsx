@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 type Snapshot = {
@@ -60,12 +61,12 @@ export function VersionDiffDialog({
 }) {
   const prevVersion = version != null && version > 1 ? version - 1 : null;
 
-  const { data: curSnap } = useQuery({
+  const { data: curSnap, isPending: curPending } = useQuery({
     queryKey: ["version-snapshot", definitionId, version],
     queryFn: () => fetchSnapshot(definitionId, version!),
     enabled: open && version != null,
   });
-  const { data: prevSnap } = useQuery({
+  const { data: prevSnap, isPending: prevPending } = useQuery({
     queryKey: ["version-snapshot", definitionId, prevVersion],
     queryFn: () => fetchSnapshot(definitionId, prevVersion!),
     enabled: open && prevVersion != null,
@@ -83,6 +84,9 @@ export function VersionDiffDialog({
     return Array.from({ length: max }, (_, i) => ({ before: a[i] ?? "—", after: b[i] ?? "—" }));
   }, [prevSnap, curSnap]);
 
+  // Disabled queries also report pending, so only wait on the ones that run.
+  const loading = (version != null && curPending) || (prevVersion != null && prevPending);
+
   const onlyChanged = changedFields.filter((f) => f.before !== f.after);
   const condChanges = conditionRows.filter((r) => r.before !== r.after);
   const totalChanges = onlyChanged.length + condChanges.length;
@@ -91,11 +95,32 @@ export function VersionDiffDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] overflow-y-auto border-white/10 bg-[var(--surface,#161920)] text-[var(--fg)] sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Changes in v{version}</DialogTitle>
-          <DialogDescription className="text-[var(--fg-muted)]">
-            {prevVersion ? `Compared with v${prevVersion}` : "Initial version — nothing to compare."}
-          </DialogDescription>
+          <DialogTitle className="flex flex-wrap items-baseline gap-x-2">
+            Changes in v{version}
+            <DialogDescription
+              render={<span />}
+              className="text-sm font-normal text-[var(--fg-muted)]"
+            >
+              {prevVersion ? `compared with v${prevVersion}` : "· initial version"}
+            </DialogDescription>
+          </DialogTitle>
         </DialogHeader>
+
+        {loading ? (
+          <div className="space-y-4" aria-busy="true" aria-label="Loading changes">
+            <Skeleton className="h-6 w-28 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-14" />
+              <Skeleton className="h-14 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          </div>
+        ) : (
+          <>
 
         {/* Change summary */}
         {prevVersion && (
@@ -210,6 +235,8 @@ export function VersionDiffDialog({
             </div>
           )}
         </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

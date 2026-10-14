@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { useUiStore } from "@/stores/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VisualBuilder } from "@/components/definitions/VisualBuilder";
 import { ChangelogPanel } from "@/components/definitions/ChangelogPanel";
@@ -35,6 +36,7 @@ export default function DefinitionDetailPage({ params }: PageProps) {
     }
   }, [searchParams]);
 
+  const draftResetKey = useUiStore((s) => s.draftResetKey);
   const { data: definition, isLoading, refetch } = useQuery({
     queryKey: ["definition", id],
     queryFn: async () => {
@@ -124,6 +126,7 @@ export default function DefinitionDetailPage({ params }: PageProps) {
           )}
         </div>
         <VisualBuilder
+          key={draftResetKey}
           definition={{
             id: definition.id,
             name: definition.name,

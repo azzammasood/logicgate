@@ -12,6 +12,7 @@ import { AiDefinitionPrompt, type AiParseResult } from "@/components/definitions
 import { summarizeDefinition } from "@/lib/ai/assist";
 import type { JoinClause } from "@/lib/compiler";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useLiveDraftStore } from "@/stores/liveDraft";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { WorkspaceSettings } from "@/types";
@@ -193,6 +194,27 @@ export function VisualBuilder({
     conditionsMutation.mutate(complete);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedConditions]);
+
+  // Mirror the in-memory state so the pseudocode sidebar compiles it live,
+  // ahead of the debounced autosave.
+  const setLiveDraft = useLiveDraftStore((s) => s.setDraft);
+  const clearLiveDraft = useLiveDraftStore((s) => s.clearDraft);
+  useEffect(() => {
+    setLiveDraft(definition.id, {
+      definition: {
+        name: definition.name ?? "",
+        sourceTable: source.sourceTable,
+        sourceValueField: source.sourceValueField,
+        sourceDateField: source.sourceDateField,
+        joins: source.joins ?? null,
+        ...aggregation,
+      },
+      conditions: conditions
+        .filter((c) => c.field && c.field.trim())
+        .map((c, i) => ({ ...c, order: i, valueType: c.valueType ?? "STRING" })),
+    });
+  }, [definition.id, definition.name, source, aggregation, conditions, setLiveDraft]);
+  useEffect(() => () => clearLiveDraft(definition.id), [definition.id, clearLiveDraft]);
 
   const handleConditionsChange = useCallback((rows: ConditionRow[]) => {
     setConditions(rows);

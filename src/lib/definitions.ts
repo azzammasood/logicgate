@@ -72,3 +72,97 @@ export async function baselineSnapshot(
   });
   return version ? normalizeSnapshot(version.snapshot, fallback) : fallback;
 }
+
+// Fields that make up a definition's logic. Status/version bookkeeping is
+// excluded so publishing itself never reads as an "unpublished change".
+const LOGIC_FIELDS = [
+  "name",
+  "description",
+  "documentation",
+  "type",
+  "sourceTable",
+  "sourceValueField",
+  "sourceDateField",
+  "currency",
+  "aggregationFn",
+  "groupByPeriod",
+  "dedupeBy",
+  "dedupeStrategy",
+  "joins",
+] as const;
+
+function logicFingerprint(definition: Record<string, unknown>, conditions: Condition[]) {
+  const fields = LOGIC_FIELDS.map((k) => JSON.stringify(definition[k] ?? null));
+  const conds = [...conditions]
+    .sort((a, b) => a.order - b.order)
+    .map((c) => [c.connector, c.field, c.operator, c.value ?? null]);
+  return JSON.stringify([fields, conds]);
+}
+
+/**
+ * True when the definition row (which autosave writes to) differs from its
+ * latest published version. Never-published definitions count as unpublished.
+ */
+export function hasUnpublishedChanges(
+  definition: Definition & { conditions: Condition[] },
+  latestVersionSnapshot: unknown
+): boolean {
+  if (!latestVersionSnapshot) return true;
+  const published = normalizeSnapshot(latestVersionSnapshot, {
+    definition,
+    conditions: [],
+    owners: [],
+  });
+  return (
+    logicFingerprint(definition as unknown as Record<string, unknown>, definition.conditions) !==
+    logicFingerprint(
+      published.definition as unknown as Record<string, unknown>,
+      published.conditions
+    )
+  );
+}
+
+/** Overwrite a definition's logic + conditions with a stored snapshot (no new version). */
+export async function applyLogicSnapshot(
+  definitionId: string,
+  snapshot: DefinitionSnapshot,
+  documentationFallback: string | null
+) {
+  const def = snapshot.definition;
+  await prisma.$transaction(async (tx) => {
+    await tx.condition.deleteMany({ where: { definitionId } });
+    await tx.definition.update({
+      where: { id: definitionId },
+      data: {
+        name: def.name,
+        description: def.description,
+        documentation:
+          (def as { documentation?: string | null }).documentation ?? documentationFallback,
+        type: def.type,
+        status: def.status,
+        sourceTable: def.sourceTable,
+        sourceValueField: def.sourceValueField,
+        sourceDateField: def.sourceDateField,
+        currency: def.currency,
+        aggregationFn: def.aggregationFn,
+        groupByPeriod: def.groupByPeriod,
+        dedupeBy: def.dedupeBy,
+        dedupeStrategy: def.dedupeStrategy,
+        ...(def.joins !== undefined ? { joins: def.joins ?? undefined } : {}),
+      },
+    });
+    for (const c of snapshot.conditions) {
+      await tx.condition.create({
+        data: {
+          definitionId,
+          order: c.order,
+          connector: c.connector,
+          field: c.field,
+          operator: c.operator,
+          value: c.value,
+          valueType: c.valueType,
+        },
+      });
+    }
+  });
+}

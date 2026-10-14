@@ -3,8 +3,18 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { GitCompare } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { GitCompare, Undo2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useUiStore } from "@/stores/ui";
 import { Button } from "@/components/ui/button";
 import { ChangeRequestDialog } from "@/components/definitions/ChangeRequestDialog";
 import { CompareDialog } from "@/components/definitions/CompareDialog";
@@ -28,6 +38,8 @@ export function DefinitionsTopBar() {
   const [compareOpen, setCompareOpen] = useState(false);
   const [changeReqOpen, setChangeReqOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const bumpDraftResetKey = useUiStore((s) => s.bumpDraftResetKey);
 
   const { data: definition } = useQuery({
     queryKey: ["definition", definitionId],
@@ -39,6 +51,28 @@ export function DefinitionsTopBar() {
     },
     enabled: !!definitionId,
   });
+
+  const discard = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/definitions/${definitionId}/discard`, { method: "POST" });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      return json.data as { version: number };
+    },
+    onSuccess: async (data) => {
+      await qc.invalidateQueries({ queryKey: ["definition", definitionId] });
+      qc.invalidateQueries({ queryKey: ["pseudocode", definitionId] });
+      bumpDraftResetKey();
+      setDiscardOpen(false);
+      toast.success(`Reverted to v${data.version}`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Autosave writes edits straight to the definition; this flags when they
+  // differ from the last published version (and allows throwing them away).
+  const unpublished = !!definition?.hasUnpublishedChanges;
+  const canDiscard = unpublished && (definition?.versions?.length ?? 0) > 0;
 
   const proposedSnapshot = definition
     ? {
@@ -87,6 +121,26 @@ export function DefinitionsTopBar() {
               </span>
             );
           })()}
+          {unpublished && (
+            <span
+              className="hidden items-center gap-1.5 rounded-lg border border-amber-400/25 bg-amber-400/[0.06] px-2.5 py-[5px] text-[11px] text-amber-300 md:flex"
+              title="These edits are saved as a draft. They aren't live until you publish or they're approved."
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-300" />
+              Unpublished changes
+            </span>
+          )}
+          {canDiscard && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 rounded-lg border-[var(--border2)] bg-transparent px-3 text-[11px] text-[var(--text2)] hover:bg-[var(--surface2)] hover:text-[var(--fg)]"
+              onClick={() => setDiscardOpen(true)}
+            >
+              <Undo2 className="mr-1 h-3.5 w-3.5" />
+              Discard
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -134,6 +188,30 @@ export function DefinitionsTopBar() {
           onSuccess={() => qc.invalidateQueries({ queryKey: ["definition", definitionId] })}
         />
       )}
+      <Dialog open={discardOpen} onOpenChange={setDiscardOpen}>
+        <DialogContent className="border-white/10 bg-[var(--surface,#161920)] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Discard unpublished changes?</DialogTitle>
+            <DialogDescription className="text-[var(--fg-muted)]">
+              {definition?.name ?? "This definition"} goes back to v
+              {definition?.versions?.[0]?.version ?? definition?.currentVersion}, the last
+              published version. Your draft edits can&apos;t be recovered.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDiscardOpen(false)}>
+              Keep editing
+            </Button>
+            <Button
+              className="bg-red-500/90 text-white hover:bg-red-500"
+              disabled={discard.isPending}
+              onClick={() => discard.mutate()}
+            >
+              {discard.isPending ? "Discarding…" : "Discard changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }

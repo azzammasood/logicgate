@@ -1,13 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { AlertTriangle } from "lucide-react";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { PseudocodeBlock } from "@/components/definitions/PseudocodeBlock";
 import { cn } from "@/lib/utils";
+import { compile, type CompileFormat } from "@/lib/compiler";
+import { useLiveDraftStore } from "@/stores/liveDraft";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useTypedText } from "@/hooks/useTypedText";
 
 const FORMATS = [
   { id: "generic", label: "Generic", lang: "sql" },
@@ -74,6 +79,21 @@ export function PseudocodeSidebar() {
   const [format, setFormat] = useState<string>("generic");
   const lang = FORMATS.find((f) => f.id === format)?.lang ?? "sql";
 
+  // Compile the builder's live state in the browser — instant feedback on
+  // every edit. The server endpoint below is only the fallback for when the
+  // builder isn't mounted yet (first paint, other tabs).
+  const liveId = useLiveDraftStore((s) => s.definitionId);
+  const liveInput = useLiveDraftStore((s) => s.input);
+  const debouncedLive = useDebouncedValue(liveInput, 150);
+  const liveCode = useMemo(() => {
+    if (!debouncedLive || liveId !== definitionId) return null;
+    try {
+      return compile(debouncedLive, format as CompileFormat);
+    } catch {
+      return null;
+    }
+  }, [debouncedLive, liveId, definitionId, format]);
+
   const { data: pseudocode, isFetching: pseudoFetching } = useQuery({
     queryKey: ["pseudocode", definitionId, format],
     queryFn: async () => {
@@ -81,13 +101,13 @@ export function PseudocodeSidebar() {
       const json = await res.json();
       return json.data as { code: string; compiledAt: string } | null;
     },
-    enabled: !!definitionId,
+    enabled: !!definitionId && liveCode === null,
     // Keep the previous format's code on screen while the new one compiles so
     // the panel doesn't collapse and shove the version history around.
     placeholderData: keepPreviousData,
   });
 
-  const { data: versions = [] } = useQuery({
+  const { data: versions = [], isPending: versionsLoading } = useQuery({
     queryKey: ["versions", definitionId],
     queryFn: async () => {
       const res = await fetch(`/api/definitions/${definitionId}/versions`);
@@ -110,6 +130,10 @@ export function PseudocodeSidebar() {
     enabled: !!definitionId && !!workspaceId,
   });
 
+  const rawCode = liveCode ?? pseudocode?.code ?? "";
+  const targetCode = rawCode ? stripComments(rawCode) : "";
+  const typed = useTypedText(targetCode);
+
   if (!definitionId) {
     return (
       <aside className="hidden w-[300px] shrink-0 border-l border-[var(--border-color)] bg-[var(--surface,#161920)] xl:flex xl:flex-col">
@@ -126,7 +150,7 @@ export function PseudocodeSidebar() {
     <aside className="hidden w-[300px] shrink-0 flex-col overflow-y-auto border-l border-[var(--border-color)] bg-[var(--surface,#161920)] xl:flex">
       <div className="border-b border-[var(--border-color)] px-4 py-3.5">
         <h3 className="text-[11px] font-medium text-[var(--fg)]">Auto-compiled Pseudocode</h3>
-        <p className="text-[10px] text-[var(--text3)]">Updates on every save</p>
+        <p className="text-[10px] text-[var(--text3)]">Updates live as you edit</p>
       </div>
 
       <div className="space-y-4 p-4">
@@ -163,13 +187,19 @@ export function PseudocodeSidebar() {
         </div>
 
         <div className="relative min-h-[180px]">
-          {pseudocode?.code ? (
-            <PseudocodeBlock code={stripComments(pseudocode.code)} language={lang} compact />
+          {targetCode ? (
+            <PseudocodeBlock
+              code={typed.text}
+              copyText={targetCode}
+              caret={typed.typing}
+              language={lang}
+              compact
+            />
           ) : (
             <div className="h-[180px] rounded-lg border border-[var(--border-color)] bg-[var(--background,#0d0f14)]/60" />
           )}
           {/* Loading overlay while (re)compiling a format. */}
-          {pseudoFetching && (
+          {pseudoFetching && liveCode === null && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-[var(--background,#0d0f14)]/55 backdrop-blur-[1px]">
               <span className="flex items-center gap-2 rounded-full border border-[var(--accent)]/25 bg-[var(--surface,#161920)] px-3 py-1.5 text-[12px] text-[var(--accent)] shadow-lg">
                 <span className="h-3 w-3 animate-spin rounded-full border border-[var(--accent)]/40 border-t-[var(--accent)]" />
@@ -216,8 +246,15 @@ export function PseudocodeSidebar() {
                 )}
               </li>
             ))}
-            {versions.length === 0 && (
-              <li className="text-[11px] text-[var(--fg-muted)]">No versions yet.</li>
+            {versionsLoading && !!definitionId ? (
+              <>
+                <li><Skeleton className="h-9 w-full" /></li>
+                <li><Skeleton className="h-9 w-full" /></li>
+              </>
+            ) : (
+              versions.length === 0 && (
+                <li className="text-[11px] text-[var(--fg-muted)]">No versions yet.</li>
+              )
             )}
           </ul>
         </div>

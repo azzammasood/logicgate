@@ -7,7 +7,7 @@ import {
 } from "@/lib/api";
 import { updateDefinitionSchema } from "@/lib/validators";
 import { canEdit, canDelete } from "@/lib/permissions";
-import { definitionInclude } from "@/lib/definitions";
+import { definitionInclude, hasUnpublishedChanges } from "@/lib/definitions";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -29,7 +29,13 @@ export async function GET(_request: Request, { params }: Params) {
     const memberResult = await requireWorkspaceMember(user.id, definition.workspaceId);
     if ("error" in memberResult) return memberResult.error;
 
-    return apiResponse(definition);
+    return apiResponse({
+      ...definition,
+      hasUnpublishedChanges: hasUnpublishedChanges(
+        definition,
+        definition.versions[0]?.snapshot ?? null
+      ),
+    });
   } catch (e) {
     console.error(e);
     return apiResponse(null, { error: "Server error", status: 500 });

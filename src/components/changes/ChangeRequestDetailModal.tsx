@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SnapshotCompare, type Snapshot } from "@/components/definitions/SnapshotCompare";
 import { toast } from "sonner";
 
@@ -124,7 +125,11 @@ export function ChangeRequestDetailModal({
               Compare changes
             </p>
             {detailLoading && (
-              <p className="text-xs text-white/40">Loading comparison…</p>
+              <div className="space-y-2 rounded-lg border border-white/10 bg-[#0d0f14] p-3" aria-busy="true">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-7 w-full" />
+                ))}
+              </div>
             )}
             {detail && (
               <div className="rounded-lg border border-white/10 bg-[#0d0f14] p-2">

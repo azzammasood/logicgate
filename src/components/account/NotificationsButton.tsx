@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { Bell, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -48,7 +49,7 @@ export function NotificationsButton({ collapsed }: { collapsed?: boolean }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
-  const { data } = useQuery({
+  const { data, isPending: notificationsLoading } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
       const res = await fetch("/api/notifications");
@@ -159,7 +160,14 @@ export function NotificationsButton({ collapsed }: { collapsed?: boolean }) {
             <div className="flex min-h-0 flex-1">
               {/* List */}
               <div className="w-60 shrink-0 overflow-y-auto border-r border-[var(--border-color)]">
-                {notifications.length === 0 && (
+                {notificationsLoading && (
+                  <div className="space-y-2 p-3" aria-busy="true">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <Skeleton key={i} className="h-12 w-full" />
+                    ))}
+                  </div>
+                )}
+                {!notificationsLoading && notifications.length === 0 && (
                   <p className="px-4 py-10 text-center text-sm text-[var(--fg-muted)]">
                     No notifications yet.
                   </p>

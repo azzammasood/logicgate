@@ -13,6 +13,10 @@ type PseudocodeBlockProps = {
   label?: string;
   className?: string;
   compact?: boolean;
+  /** Full text for the Copy button when `code` is mid-animation. */
+  copyText?: string;
+  /** Show a blinking terminal caret after the code (typing animation). */
+  caret?: boolean;
 };
 
 export function PseudocodeBlock({
@@ -21,11 +25,13 @@ export function PseudocodeBlock({
   label = "pseudocode",
   className,
   compact = false,
+  copyText,
+  caret = false,
 }: PseudocodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
   const copyCode = async () => {
-    await navigator.clipboard.writeText(code);
+    await navigator.clipboard.writeText(copyText ?? code);
     setCopied(true);
     toast.success("Copied to clipboard");
     setTimeout(() => setCopied(false), 2000);
@@ -71,7 +77,7 @@ export function PseudocodeBlock({
           }}
           showLineNumbers={false}
         >
-          {code}
+          {caret ? `${code}▍` : code}
         </SyntaxHighlighter>
       </div>
     </div>

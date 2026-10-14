@@ -15,6 +15,9 @@ interface UiState {
   setPreferencesSection: (section: PreferencesSection) => void;
   /** Open Preferences directly on a given section (defaults to AI). */
   openPreferences: (section?: PreferencesSection) => void;
+  /** Bumped after a draft is discarded so the builder remounts from the server state. */
+  draftResetKey: number;
+  bumpDraftResetKey: () => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -28,5 +31,7 @@ export const useUiStore = create<UiState>((set) => ({
   setPreferencesSection: (preferencesSection) => set({ preferencesSection }),
   openPreferences: (section = "ai") =>
     set({ preferencesOpen: true, preferencesSection: section }),
+  draftResetKey: 0,
+  bumpDraftResetKey: () => set((s) => ({ draftResetKey: s.draftResetKey + 1 })),
 }));
 
