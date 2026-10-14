@@ -66,7 +66,10 @@ export function AggregationSection({ values, onChange }: AggregationSectionProps
             }}
           >
             <SelectTrigger className={triggerClass}>
-              <SelectValue placeholder="None — list or filter only" />
+              {/* Explicit label: base-ui otherwise renders the raw sentinel value. */}
+              <SelectValue placeholder="None — list or filter only">
+                {values.aggregationFn ?? "None — list or filter only"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className={contentClass}>
               <SelectItem value={NONE_AGG}>None — list / filter only</SelectItem>

@@ -211,9 +211,25 @@ const TYPE_TAG: Record<string, string> = {
 
 function RowLink({ d, active }: { d: DefinitionRow; active: boolean }) {
   const recent = isAfter(new Date(d.updatedAt), subHours(new Date(), 24));
+  const qc = useQueryClient();
+  // Warm the detail query on hover/focus so the page has data by the click.
+  // Same key + staleTime as the detail page, so it's reused, not refetched.
+  const prefetch = () =>
+    qc.prefetchQuery({
+      queryKey: ["definition", d.id],
+      queryFn: async () => {
+        const res = await fetch(`/api/definitions/${d.id}`);
+        const json = await res.json();
+        if (json.error) throw new Error(json.error);
+        return json.data;
+      },
+      staleTime: 30_000,
+    });
   return (
     <Link
       href={`/app/definitions/${d.id}`}
+      onMouseEnter={prefetch}
+      onFocus={prefetch}
       className={cn(
         "block min-w-0 flex-1 border-l-2 px-2.5 py-2 transition-all duration-150",
         active

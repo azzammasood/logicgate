@@ -71,7 +71,6 @@
   font-style: normal;
   font-weight: 800;
   color: var(--accent);
-  text-shadow: 0 0 28px color-mix(in srgb, var(--accent) 35%, transparent);
   white-space: nowrap;
 }
 .drift-page .hero p {
@@ -991,6 +990,85 @@
   }
   .drift-page .stab,
   .drift-page .row > .ct:last-child {
+    display: none;
+  }
+}
+
+/* ---------- hero stat ticker ---------- */
+.drift-page .ticker {
+  position: relative;
+}
+/* Always exactly two lines (each truncates) so rotating stats never shift the layout. */
+.drift-page .ticker h2 > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.drift-page .ticker-line {
+  animation: ticker-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.drift-page .ticker-line.out {
+  position: absolute;
+  inset: 0;
+  animation: ticker-out 0.45s cubic-bezier(0.55, 0, 0.75, 0.3) both;
+}
+@keyframes ticker-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(6px);
+  }
+}
+@keyframes ticker-out {
+  to {
+    opacity: 0;
+    transform: translateY(-18px);
+    filter: blur(6px);
+  }
+}
+.drift-page .ticker em .scr {
+  color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.drift-page .ticker-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 14px;
+}
+.drift-page .ticker-dots button {
+  position: relative;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--fg) 14%, transparent);
+  transition: width 0.3s ease;
+}
+.drift-page .ticker-dots button.on {
+  width: 34px;
+}
+/* The active dot fills up over the dwell time, like a progress bar. */
+.drift-page .ticker-dots button.on::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform-origin: left;
+  animation: ticker-fill var(--dwell, 6s) linear both;
+}
+.drift-page .ticker:hover .ticker-dots button.on::after {
+  animation-play-state: paused;
+}
+@keyframes ticker-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .drift-page .ticker-line,
+  .drift-page .ticker-line.out {
+    animation: none;
+  }
+  .drift-page .ticker-line.out {
     display: none;
   }
 }

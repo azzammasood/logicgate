@@ -188,18 +188,35 @@ export function PseudocodeSidebar() {
 
         <div className="relative min-h-[180px]">
           {targetCode ? (
-            <PseudocodeBlock
-              code={typed.text}
-              copyText={targetCode}
-              caret={typed.typing}
-              language={lang}
-              compact
-            />
+            <div
+              className={cn(
+                "transition-opacity duration-300",
+                typed.phase === "compiling" && "opacity-45"
+              )}
+            >
+              <PseudocodeBlock
+                code={typed.text}
+                copyText={targetCode}
+                caret={typed.phase !== "idle"}
+                language={lang}
+                compact
+              />
+            </div>
           ) : (
             <div className="h-[180px] rounded-lg border border-[var(--border-color)] bg-[var(--background,#0d0f14)]/60" />
           )}
           {/* Loading overlay while (re)compiling a format. */}
-          {pseudoFetching && liveCode === null && (
+          {/* Live edit: a short compile beat before the change types in. */}
+          {typed.phase === "compiling" && (
+            <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden rounded-lg">
+              <div className="pseudo-scan absolute inset-x-0 h-10" />
+              <span className="absolute right-2 top-9 flex items-center gap-1.5 rounded-full border border-[var(--accent)]/25 bg-[var(--surface,#161920)]/95 px-2.5 py-1 text-[11px] text-[var(--accent)] shadow-lg">
+                <span className="h-2.5 w-2.5 animate-spin rounded-full border border-[var(--accent)]/40 border-t-[var(--accent)]" />
+                Compiling…
+              </span>
+            </div>
+          )}
+          {pseudoFetching && liveCode === null && !targetCode && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-[var(--background,#0d0f14)]/55 backdrop-blur-[1px]">
               <span className="flex items-center gap-2 rounded-full border border-[var(--accent)]/25 bg-[var(--surface,#161920)] px-3 py-1.5 text-[12px] text-[var(--accent)] shadow-lg">
                 <span className="h-3 w-3 animate-spin rounded-full border border-[var(--accent)]/40 border-t-[var(--accent)]" />

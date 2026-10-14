@@ -25,6 +25,8 @@ import {
   type DriftVersion,
 } from "@/lib/drift";
 import "./drift.css";
+import { formatDistanceToNow } from "date-fns";
+import { HeroTicker, type HeroStat } from "./HeroTicker";
 
 const DAY = 864e5;
 
@@ -169,6 +171,77 @@ export default function DashboardPage() {
     };
   }, [active, inRange]);
 
+  // Rotating hero headlines. Each is two short lines; stats with nothing to
+  // say (no activity yet) are skipped rather than shown as zeros.
+  const heroStats = useMemo<HeroStat[]>(() => {
+    const clip = (t: string, n = 22) => (t.length > n ? `${t.slice(0, n - 1)}…` : t);
+    const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+    const shipped = active.flatMap((d) =>
+      d.versions.filter((v) => inRange(v) && v.kind !== "pending").map((v) => ({ v, d }))
+    );
+
+    const out: HeroStat[] = [
+      {
+        key: "changes",
+        lead: "Your definitions changed",
+        figure: plural(kpis.shipped, "time"),
+        tail: `in the ${rangeLabel}.`,
+      },
+    ];
+    if (!kpis.tracked) return out;
+
+    out.push({
+      key: "steady",
+      lead: `In the ${rangeLabel},`,
+      figure: `${kpis.tracked - kpis.changed} of ${kpis.tracked}`,
+      tail: "definitions held steady.",
+    });
+    out.push(
+      kpis.pending
+        ? {
+            key: "queue",
+            lead: "Waiting on a reviewer:",
+            figure: plural(kpis.pending, "change"),
+            tail: "awaiting sign-off.",
+          }
+        : { key: "queue", lead: "Your review queue is", figure: "all clear", tail: "— nothing to sign off." }
+    );
+    if (!shipped.length) return out;
+
+    const perDef = new Map<string, { name: string; n: number }>();
+    for (const { d } of shipped) {
+      const e = perDef.get(d.id) ?? { name: d.name, n: 0 };
+      e.n++;
+      perDef.set(d.id, e);
+    }
+    const top = [...perDef.values()].sort((a, b) => b.n - a.n)[0];
+    if (top && top.n > 1) {
+      out.push({
+        key: "mover",
+        lead: "Most edited lately:",
+        figure: clip(top.name),
+        tail: `· ${plural(top.n, "version")}.`,
+      });
+    }
+
+    const people = new Set(shipped.map(({ v }) => v.author.id)).size;
+    out.push({
+      key: "people",
+      lead: "Your logic was shaped by",
+      figure: plural(people, "person", "people"),
+      tail: `in the ${rangeLabel}.`,
+    });
+
+    const last = shipped.sort((a, b) => +new Date(b.v.date) - +new Date(a.v.date))[0];
+    out.push({
+      key: "last",
+      lead: "The latest change landed",
+      figure: formatDistanceToNow(new Date(last.v.date), { addSuffix: true }),
+      tail: `on ${clip(last.d.name, 18)}.`,
+    });
+    return out;
+  }, [active, inRange, kpis, rangeLabel]);
+
   const bars = useMemo(() => {
     const counts = Array(weeks).fill(0) as number[];
     for (const def of visible) {
@@ -296,14 +369,7 @@ export default function DashboardPage() {
               {isLoading ? (
                 <Skeleton className="h-[96px] w-full max-w-[460px]" />
               ) : (
-                <h2>
-                  Your definitions changed
-                  <br />
-                  <em>
-                    {kpis.shipped} time{kpis.shipped === 1 ? "" : "s"}
-                  </em>{" "}
-                  in the {rangeLabel}.
-                </h2>
+                <HeroTicker stats={heroStats} />
               )}
             </div>
             <div className="kpis">

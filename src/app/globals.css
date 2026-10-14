@@ -364,3 +364,26 @@ a {
     animation: none !important;
   }
 }
+
+/* Pseudocode sidebar — scan bar sweeping the code while a live edit compiles */
+.pseudo-scan {
+  top: -40px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--accent) 14%, transparent) 60%,
+    color-mix(in srgb, var(--accent) 35%, transparent) 96%,
+    transparent
+  );
+  animation: pseudo-scan 0.9s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes pseudo-scan {
+  to {
+    top: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pseudo-scan {
+    display: none;
+  }
+}
